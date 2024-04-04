@@ -81,6 +81,9 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 				 if ( !file_ )
 					 return;
 
+				 if ( file_->GetFrameCount() <= 1 )
+					 return; // Do not animate when we do not have frames to animate, lol.
+				 
 				 if ( animateButton->text() == "Animate" )
 				 {
 					 viewer->startAnimation( frameBox->value() );

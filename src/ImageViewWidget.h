@@ -1,9 +1,12 @@
 #pragma once
 #include "../libs/VTFLib/VTFLib/VTFLib.h"
 
+#include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLPaintDevice>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
 #include <QOpenGLWidget>
 #include <QWidget>
 
@@ -114,8 +117,16 @@ public:
 		frame_ = f;
 		this->update();
 	}
+
+	int get_frame() const
+	{
+		return frame_;
+	}
+
 	void set_face( int f )
 	{
+		if ( m_animating )
+			return; // We do not allow the face to be set/messed with publicly when it's animating.
 		face_ = f;
 		this->update();
 	}
@@ -125,7 +136,21 @@ public:
 		this->update();
 	}
 
+	float getZoom() const;
+
 	void zoom( float amount );
+
+	void setXOffset( int offset )
+	{
+		xOffset_ = offset;
+		this->update();
+	};
+
+	void setYOffset( int offset )
+	{
+		yOffset_ = offset;
+		this->update();
+	}
 
 	void startAnimation( int fps );
 
@@ -134,14 +159,15 @@ public:
 private:
 	void update_size();
 
-	unsigned int texture;
-	unsigned int shaderProgram;
+	QOpenGLTexture texture { QOpenGLTexture::Target2D };
+	QOpenGLShaderProgram *shaderProgram;
 	VTFLib::CVTFFile *file_ = nullptr;
 
 	bool m_animating = false;
 
-	QOpenGLContext *m_context = nullptr;
-	QOpenGLPaintDevice *m_device = nullptr;
+	QOpenGLBuffer vertices { QOpenGLBuffer::Type::VertexBuffer };
+
+	QOpenGLBuffer indexes { QOpenGLBuffer::Type::IndexBuffer };
 
 	float zoom_ = 1.0f;
 	QPoint pos_;
@@ -150,6 +176,8 @@ private:
 	int face_ = 0;
 	int mip_ = 0;
 	int rgba_ = 16;
+	float xOffset_ = 0;
+	float yOffset_ = 0;
 	bool hasRed_ = true;
 	bool hasGreen_ = true;
 	bool hasBlue_ = true;
@@ -162,4 +190,6 @@ private:
 	int currentMip_ = 0;
 	bool requestColorChange = false;
 	void Animate();
+signals:
+	void animated( int frame );
 };

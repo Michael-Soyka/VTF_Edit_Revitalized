@@ -16,6 +16,12 @@ public:
 
 	void set_vtf( VTFLib::CVTFFile *file );
 
+	void set_frame( int frame )
+	{
+		if ( file_ )
+			frame_->setValue( frame );
+	}
+
 signals:
 	/**
 	 * Invoked when the VTF is modified in some way

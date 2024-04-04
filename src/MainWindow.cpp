@@ -1,15 +1,20 @@
 #include "MainWindow.h"
 
+#include "../libs/stb/stb_image.h"
+#include "EntryTree.h"
 #include "Options.h"
 #include "VTFEImport.h"
 
 #include <QApplication>
+#include <QBuffer>
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QGridLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStyle>
@@ -32,15 +37,46 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	scrollWidget = new ZoomScrollArea( this );
 
-	pImageViewWidget = new ImageViewWidget();
+	pImageViewWidget = new ImageViewWidget( scrollWidget );
 
 	scrollWidget->setWidget( pImageViewWidget );
 	scrollWidget->setMinimumSize( 512, 512 );
 
+	scrollWidget->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	scrollWidget->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+
+	scrollWidget->horizontalScrollBar()->setRange( 0, 4096 );
+	scrollWidget->verticalScrollBar()->setRange( 0, 4096 );
+	QPoint topLeft = scrollWidget->viewport()->rect().topLeft();
+	scrollWidget->viewport()->resize( 4096, 4096 );
+
+	QSize areaSize = scrollWidget->viewport()->size();
+	qInfo() << this->size();
+	scrollWidget->viewport()->move( 255, 255 );
+	//	qInfo() << scrollWidget->rect().center();
+	//	scrollWidget->verticalScrollBar()->setPageStep( areaSize.height() / 0.01 );
+	//	scrollWidget->horizontalScrollBar()->setPageStep( areaSize.width() / 0.01 );
+	scrollWidget->horizontalScrollBar()->setValue( 4096 / 2 );
+	scrollWidget->verticalScrollBar()->setValue( 4096 / 2 );
+	//	scrollWidget->horizontalScrollBar()->setMinimum( 0 );
+	//	scrollWidget->horizontalScrollBar()->setMaximum( 512 );
+	//	scrollWidget->verticalScrollBar()->setMinimum( 0 );
+	//	scrollWidget->verticalScrollBar()->setMaximum( 512 );
+	//	scrollWidget->ensureVisible( 0, 0, 0, 0 );
+
 	pMainLayout->addWidget( scrollWidget, 1, 1 );
 
+	auto pSettingsFileSystemTab = new QTabWidget( this );
+
 	pImageSettingsWidget = new ImageSettingsWidget( pImageViewWidget, this );
-	pMainLayout->addWidget( pImageSettingsWidget, 0, 0, 2, 1, Qt::AlignLeft );
+
+	pSettingsFileSystemTab->addTab( pImageSettingsWidget, "Settings" );
+
+	pFileSystemTree = new EntryTree( pSettingsFileSystemTab );
+
+	pSettingsFileSystemTab->addTab( pFileSystemTree, "File System" );
+
+	pMainLayout->addWidget( pSettingsFileSystemTab, 0, 0, 2, 1, Qt::AlignLeft );
 
 	auto pInfoResourceTabWidget = new QTabWidget( this );
 
@@ -58,18 +94,54 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 	m_pMainMenuBar->setNativeMenuBar( false );
 	pMainLayout->setMenuBar( m_pMainMenuBar );
 
+	//	connect( this, & )
+	connect( pFileSystemTree, &EntryTree::doubleClicked, pFileSystemTree, [this]( const QModelIndex &parent )
+			 {
+				 if ( TreeItem *item = reinterpret_cast<TreeItem *>( parent.internalPointer() ) )
+				 {
+					 if ( item->getItemType() == TreeItem::VPK_INTERNAL )
+					 {
+						 TreeItem *mainParent = item;
+						 while ( mainParent->getItemType() != TreeItem::VPK_FILE )
+						 {
+							 mainParent = mainParent->parentItem();
+						 }
+
+						 if ( item->getEntry().ends_with( "vtf" ) )
+						 {
+							 auto data = mainParent->pakFile()->readEntry( mainParent->pakFile()->findEntry( item->getEntry() ).value() );
+							 VTFLib::CVTFFile *file = new VTFLib::CVTFFile {};
+							 file->Load( data.value().data(), data.value().size(), false );
+							 addVTFToTab( file, item->getEntry().data() );
+						 }
+					 }
+					 //					 model->fillItem( item );
+					 //					 QTreeView::rowsInserted( parent, 0, model->rowCount( parent ) );
+				 }
+			 } );
+
+	connect( scrollWidget->horizontalScrollBar(), &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setXOffset );
+
+	connect( scrollWidget->verticalScrollBar(), &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setYOffset );
+
 	connect( pImageTabWidget, &QTabBar::tabCloseRequested, this, &CMainWindow::removeVTFTab );
 
 	connect( pImageTabWidget, &QTabBar::currentChanged, this, &CMainWindow::tabChanged );
 
-	connect( scrollWidget, &ZoomScrollArea::onScrollUp, this, [&]
+	connect( pImageViewWidget, &ImageViewWidget::animated, pImageSettingsWidget, &ImageSettingsWidget::set_frame );
+
+	connect( scrollWidget, &ZoomScrollArea::onScrollUp, this, [&, areaSize]
 			 {
-				 pImageViewWidget->zoom( 0.1 );
+				 pImageViewWidget->zoom( 0.05 );
+				 scrollWidget->verticalScrollBar()->setPageStep( ( areaSize.height() - ( areaSize.height() * pImageViewWidget->getZoom() ) ) );
+				 scrollWidget->horizontalScrollBar()->setPageStep( ( areaSize.width() - ( areaSize.width() * pImageViewWidget->getZoom() ) ) );
 			 } );
 
-	connect( scrollWidget, &ZoomScrollArea::onScrollDown, this, [&]
+	connect( scrollWidget, &ZoomScrollArea::onScrollDown, this, [&, areaSize]
 			 {
-				 pImageViewWidget->zoom( -0.1 );
+				 pImageViewWidget->zoom( -0.05 );
+				 scrollWidget->verticalScrollBar()->setPageStep( ( ( areaSize.height() * pImageViewWidget->getZoom() ) - ( areaSize.height() ) ) );
+				 scrollWidget->horizontalScrollBar()->setPageStep( ( ( areaSize.width() * pImageViewWidget->getZoom() ) - ( areaSize.width() ) ) );
 			 } );
 
 	setupMenuBar();
@@ -152,6 +224,9 @@ void CMainWindow::tabChanged( int index )
 		scrollWidget->verticalScrollBar()->setSliderPosition( pVTF->GetHeight() / 2 );
 		scrollWidget->horizontalScrollBar()->setSliderPosition( pVTF->GetWidth() / 2 );
 	}
+
+	scrollWidget->horizontalScrollBar()->setValue( 4096 / 2 );
+	scrollWidget->verticalScrollBar()->setValue( 4096 / 2 );
 }
 
 void CMainWindow::setupMenuBar()
@@ -165,7 +240,8 @@ void CMainWindow::setupMenuBar()
 	auto pToolMenuTab = m_pMainMenuBar->addMenu( "Tools" );
 	pToolMenuTab->addAction( "VTF Version Editor (Individual)", this, &CMainWindow::compressVTFFile );
 	pToolMenuTab->addAction( "VTF Version Editor (Batch)", this, &CMainWindow::compressVTFFolder );
-	pToolMenuTab->addAction( "Folder to VTF", this, &CMainWindow::ImageToVTF );
+	pToolMenuTab->addAction( "Folders to VTF", this, &CMainWindow::foldersToVTF );
+	pToolMenuTab->addAction( "FontToVTF", this, &CMainWindow::fontToVTF );
 
 	auto pViewMenu = m_pMainMenuBar->addMenu( "View" );
 	redBox = createCheckableAction( "Red", pViewMenu );
@@ -572,8 +648,63 @@ void CMainWindow::compressVTFFolder()
 #endif
 }
 
-void CMainWindow::ImageToVTF()
+void CMainWindow::foldersToVTF()
 {
+	auto recentPaths = Options::get<QStringList>( STR_OPEN_RECENT );
+
+	QString importFrom = QFileDialog::getExistingDirectory(
+		this, "Import From", recentPaths.last(),
+		QFileDialog::Option::DontUseNativeDialog );
+
+	QString exportTo = QFileDialog::getExistingDirectory(
+		this, "Export To", recentPaths.last(),
+		QFileDialog::Option::DontUseNativeDialog );
+
+	if ( importFrom.isEmpty() )
+		return;
+
+	if ( exportTo.isEmpty() )
+		return;
+
+	if ( recentPaths.contains( importFrom ) )
+		recentPaths.removeAt( recentPaths.indexOf( importFrom ) );
+	recentPaths.push_back( importFrom );
+
+	if ( recentPaths.contains( exportTo ) )
+		recentPaths.removeAt( recentPaths.indexOf( exportTo ) );
+	recentPaths.push_back( exportTo );
+	Options::set( STR_OPEN_RECENT, recentPaths );
+
+	auto pVTFImportWindow = VTFEImport::Standalone( this );
+
+	pVTFImportWindow->exec();
+
+	if ( pVTFImportWindow->IsCancelled() )
+		return;
+
+	QStringList VTFPaths;
+	QDirIterator it( importFrom, QStringList() << "*.vtf", QDir::Files, QDirIterator::Subdirectories );
+	while ( it.hasNext() )
+	{
+		QString path = it.next();
+
+		QStringList temp = path.split( importFrom );
+		temp.pop_front();
+		QStringList temp2 = temp.join( "" ).split( QDir::separator() );
+		temp2.pop_front();
+		temp2.pop_back();
+
+		if ( importFrom != exportTo )
+		{
+			QString dirCreator;
+			for ( const auto &tPath : temp2 )
+			{
+				dirCreator += QDir::separator() + tPath;
+				if ( !QDir().exists( dirCreator ) )
+					QDir().mkdir( dirCreator );
+			}
+		}
+	}
 }
 
 void CMainWindow::importFromFile()
@@ -713,6 +844,92 @@ void CMainWindow::generateVTFFromImages( QStringList filePaths )
 	addVTFToTab( pVTF, fl.fileName() );
 }
 
+void CMainWindow::fontToVTF()
+{
+	auto recentPaths = Options::get<QStringList>( STR_OPEN_RECENT );
+
+	QString filePath = QFileDialog::getOpenFileName(
+		this, "Open TTF/OTF", recentPaths.last(), "*.ttf *.otf", nullptr, QFileDialog::Option::DontUseNativeDialog );
+
+	if ( filePath.isEmpty() )
+		return;
+
+	if ( recentPaths.contains( filePath ) )
+		recentPaths.removeAt( recentPaths.indexOf( filePath ) );
+	recentPaths.push_back( filePath );
+	Options::set( STR_OPEN_RECENT, recentPaths );
+
+	generateVTFFromFont( filePath );
+}
+
+void CMainWindow::generateVTFFromFont( const QString &filepath )
+{
+	int id = QFontDatabase::addApplicationFont( filepath );
+	QString family = QFontDatabase::applicationFontFamilies( id ).at( 0 );
+	QString charList = R"( !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|})";
+
+	QTextOption opts;
+
+	QBuffer buff;
+	QImage image( QSize( 1024, 1024 ), QImage::Format_RGBA8888 );
+
+	QPainter painter;
+	painter.begin( &image );
+	// This fixes a weird issue where background will become garbage data
+	// if not cleared first.
+	painter.setCompositionMode( QPainter::CompositionMode_Source );
+	painter.fillRect( QRect( 0, 0, 1024, 1024 ), QColor( 0, 0, 0, 0 ) );
+	painter.setCompositionMode( QPainter::CompositionMode_SourceOver );
+
+	painter.setBrush( Qt::transparent );
+	painter.setPen( QPen( Qt::white ) );
+	auto font = QFont( family );
+	auto offset = 32;
+	font.setPointSize( offset );
+	painter.setFont( font );
+
+	//	painter.drawRect( 0, 0, 1024, 1024 );
+	for ( int i = 0, j = 0, k = 0; k < charList.length(); i++, k++ )
+	{
+		if ( i > 15 )
+		{
+			j++;
+			i = 0;
+		}
+		painter.drawText( ( i * 64 ) + offset / 2, ( j * 64 ) + offset * 1.5, charList[k] );
+	}
+	painter.end();
+
+	QByteArray im;
+	QBuffer bufferrgb( &im );
+	bufferrgb.open( QIODevice::WriteOnly );
+
+	image.save( &bufferrgb, "PNG" );
+
+	int x, y, n;
+
+	stbi_uc *data = stbi_load_from_memory( reinterpret_cast<const stbi_uc *>( bufferrgb.data().constData() ), bufferrgb.size(), &x, &y, &n, 4 );
+	QFontDatabase::removeApplicationFont( id );
+
+	auto newWindow = VTFEImport::FromFont( this, data, 1024, 1024 );
+
+	newWindow->exec();
+
+	if ( newWindow->IsCancelled() )
+		return;
+
+	VTFErrorType err;
+	auto pVTF = newWindow->GenerateVTF( err );
+	if ( err != SUCCESS )
+	{
+		QMessageBox::critical( this, "INVALID IMAGE", "The Image is invalid.", QMessageBox::Ok );
+		return;
+	}
+
+	QFileInfo fl( filepath );
+	addVTFToTab( pVTF, fl.fileName() );
+}
+
 void CMainWindow::exportVTFToFile()
 {
 	const auto key = pImageTabWidget->tabData( pImageTabWidget->currentIndex() ).value<intptr_t>();
@@ -819,10 +1036,17 @@ void CMainWindow::processCLIArguments( const int &argCount, char **pString )
 			addVTFFromPathToTab( filePath );
 	}
 }
+void CMainWindow::resizeEvent( QResizeEvent *r )
+{
+	auto pos = scrollWidget->pos();
+	pImageViewWidget->move( -r->size().width() - pos.x(), -r->size().height() - pos.y() );
+	QDialog::resizeEvent( r );
+}
 
 ZoomScrollArea::ZoomScrollArea( QWidget *pParent ) :
-	QScrollArea( pParent )
+	QAbstractScrollArea( pParent )
 {
+	viewport()->setBackgroundRole( QPalette::NoRole );
 }
 
 void ZoomScrollArea::wheelEvent( QWheelEvent *event )
@@ -873,5 +1097,24 @@ bool ZoomScrollArea::event( QEvent *event )
 			m_isCTRLHeld = false;
 	}
 
-	return QScrollArea::event( event );
+	return QAbstractScrollArea::event( event );
+}
+
+QWidget *ZoomScrollArea::takeWidget()
+{
+	QWidget *w = this->pWidget;
+	pWidget = nullptr;
+	if ( w )
+		w->setParent( nullptr );
+	return w;
+}
+QWidget *ZoomScrollArea::widget() const
+{
+	return pWidget;
+}
+void ZoomScrollArea::setWidget( QWidget *widget )
+{
+	if ( widget->parentWidget() != viewport() )
+		widget->setParent( viewport() );
+	pWidget = widget;
 }

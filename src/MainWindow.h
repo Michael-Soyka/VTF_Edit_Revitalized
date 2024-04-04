@@ -10,6 +10,8 @@
 #include <QScrollArea>
 #include <QWheelEvent>
 
+class EntryTree;
+
 namespace ui
 {
 
@@ -31,6 +33,7 @@ namespace ui
 
 		ImageViewWidget *pImageViewWidget;
 		ImageSettingsWidget *pImageSettingsWidget;
+		EntryTree *pFileSystemTree;
 		ResourceWidget *pResourceWidget;
 		InfoWidget *pImageInfo;
 		QTabBar *pImageTabWidget;
@@ -56,19 +59,31 @@ namespace ui
 		QAction *greenBox;
 		QAction *blueBox;
 		QAction *alphaBox;
-		void ImageToVTF();
+		void foldersToVTF();
 		void compressVTFFolder();
+		void generateVTFFromFont( const QString &filepath );
+		void fontToVTF();
+
+		void resizeEvent( QResizeEvent * ) override;
 	};
 
-	class ZoomScrollArea : public QScrollArea
+	class ZoomScrollArea : public QAbstractScrollArea
 	{
 		Q_OBJECT
+
+		QWidget *pWidget;
+
 		void wheelEvent( QWheelEvent *event ) override;
 		bool event( QEvent * ) override;
+
 		bool m_isCTRLHeld = false;
 
 	public:
 		ZoomScrollArea( QWidget *pParent );
+
+		QWidget *widget() const;
+		void setWidget( QWidget *widget );
+		QWidget *takeWidget();
 
 	signals:
 		void onScrollUp();

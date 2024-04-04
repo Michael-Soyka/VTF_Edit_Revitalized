@@ -645,6 +645,33 @@ VTFEImport *VTFEImport::FromVTF( QWidget *pParent, VTFLib::CVTFFile *pFile )
 	return vVTFImport;
 }
 
+VTFEImport *VTFEImport::Standalone( QWidget *pParent )
+{
+	auto vVTFImport = new VTFEImport( pParent );
+
+	vVTFImport->InitializeWidgets();
+
+	vVTFImport->SetDefaults();
+
+	return vVTFImport;
+}
+
+VTFEImport *VTFEImport::FromFont( QWidget *pParent, vlByte *buff, int width, int height )
+{
+	auto vVTFImport = new VTFEImport( pParent );
+
+	vVTFImport->imageList[vVTFImport->imageList.size()] = new VTFEImageFormat(
+		buff, width, height, 0, IMAGE_FORMAT_RGBA8888 );
+
+	vVTFImport->InitializeWidgets();
+
+	vVTFImport->SetDefaults();
+
+	vVTFImport->pGeneralTab->vBoxResize->setDisabled( true );
+
+	return vVTFImport;
+}
+
 GeneralTab::GeneralTab( VTFEImport *parent ) :
 	QDialog( parent )
 {
@@ -717,17 +744,29 @@ void GeneralTab::GeneralOptions()
 
 void GeneralTab::GeneralResize()
 {
-	auto vBoxResize = new QGroupBox( tr( "Resize" ), this );
+	vBoxResize = new QGroupBox( tr( "Resize" ), this );
 	auto vBLayout = new QGridLayout( vBoxResize );
 	pResizeCheckbox = new QCheckBox( this );
 	pResizeCheckbox->setText( tr( "Resize" ) );
 	auto parent = static_cast<VTFEImport *>( this->parent() );
-	vlBool b1 = parent->IsPowerOfTwo( parent->imageList[0]->getWidth() );
-	vlBool b2 = parent->IsPowerOfTwo( parent->imageList[0]->getHeight() );
-	pResizeCheckbox->setChecked( !( b1 && b2 ) );
-	pResizeCheckbox->setDisabled( !( b1 && b2 ) );
-	if ( !( b1 && b2 ) )
-		pResizeCheckbox->setToolTip( tr( "Image is not in power of 2 and therefore needs resizing." ) );
+	if ( !parent->imageList.isEmpty() )
+	{
+		vlBool b1 = parent->IsPowerOfTwo( parent->imageList[0]->getWidth() );
+		vlBool b2 = parent->IsPowerOfTwo( parent->imageList[0]->getHeight() );
+		pResizeCheckbox->setChecked( !( b1 && b2 ) );
+		pResizeCheckbox->setDisabled( !( b1 && b2 ) );
+		if ( !( b1 && b2 ) )
+			pResizeCheckbox->setToolTip( tr( "Image is not in power of 2 and therefore needs resizing." ) );
+	}
+	else
+	{
+		pResizeCheckbox->setChecked( true );
+		pResizeCheckbox->setDisabled( true );
+		pResizeCheckbox->setToolTip( "Rescaling WILL be done to non power of two images This is a quirk of folder conversion." );
+		auto pal = pResizeCheckbox->palette();
+		pal.setColor( QPalette::WindowText, Qt::red );
+		pResizeCheckbox->setPalette( pal );
+	}
 	vBLayout->addWidget( pResizeCheckbox, 0, 0, Qt::AlignLeft );
 	auto label1 = new QLabel();
 	label1->setText( tr( "Resize Method:" ) );
@@ -875,7 +914,27 @@ void GeneralTab::GeneralCustomMipmaps()
 
 	auto parent = dynamic_cast<VTFEImport *>( this->parent() );
 
-	vlUInt maxCubemaps = VTFLib::CVTFFile::ComputeMipmapCount( parent->imageList[0]->getWidth(), parent->imageList[0]->getHeight(), 1 );
+	if ( !parent->imageList.isEmpty() )
+	{
+		vlUInt maxCubemaps = VTFLib::CVTFFile::ComputeMipmapCount( parent->imageList[0]->getWidth(), parent->imageList[0]->getHeight(), 1 );
+
+		for ( int i = 1; i < maxCubemaps; i++ )
+		{
+			vlUInt uiMipWidth, uiMipHeight, uiMipDepth;
+			VTFLib::CVTFFile::ComputeMipmapDimensions( parent->imageList[0]->getWidth(), parent->imageList[0]->getHeight(), 1, i, uiMipWidth, uiMipHeight, uiMipDepth );
+			auto mipMapButton = new QPushButton( QApplication::style()->standardIcon( QStyle::SP_FileIcon ), QString::number( uiMipWidth ) + " X " + QString::number( uiMipHeight ) );
+
+			connect( mipMapButton, &QPushButton::clicked, this, []() {
+
+			} );
+
+			pMipMapDialogLayout->addWidget( mipMapButton, Qt::AlignRight );
+		}
+	}
+	else
+	{
+		vBoxCustomMipMaps->setDisabled( true );
+	}
 
 	auto pFrameBox = new QSpinBox( pScrollArea );
 	pFrameBox->setPrefix( "Frame: " );
@@ -886,19 +945,6 @@ void GeneralTab::GeneralCustomMipmaps()
 	auto pSliceBox = new QSpinBox( pScrollArea );
 	pSliceBox->setPrefix( "Slice: " );
 	vBLayout->addWidget( pSliceBox, 0, 2 );
-
-	for ( int i = 1; i < maxCubemaps; i++ )
-	{
-		vlUInt uiMipWidth, uiMipHeight, uiMipDepth;
-		VTFLib::CVTFFile::ComputeMipmapDimensions( parent->imageList[0]->getWidth(), parent->imageList[0]->getHeight(), 1, i, uiMipWidth, uiMipHeight, uiMipDepth );
-		auto mipMapButton = new QPushButton( QApplication::style()->standardIcon( QStyle::SP_FileIcon ), QString::number( uiMipWidth ) + " X " + QString::number( uiMipHeight ) );
-
-		connect( mipMapButton, &QPushButton::clicked, this, []() {
-
-		} );
-
-		pMipMapDialogLayout->addWidget( mipMapButton, Qt::AlignRight );
-	}
 
 	pScrollArea->setLayout( pMipMapDialogLayout );
 	vBLayout->addWidget( pScrollArea, 1, 0, 1, 3 );

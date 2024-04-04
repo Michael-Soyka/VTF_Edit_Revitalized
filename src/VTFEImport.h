@@ -39,6 +39,7 @@ public:
 	QComboBox *pTypeCombo;
 	QCheckBox *pSRGBCheckbox;
 	// Resize
+	QGroupBox *vBoxResize;
 	QCheckBox *pResizeCheckbox;
 	QComboBox *pResizeMethodCombo;
 	QComboBox *pResizeFilterCombo;
@@ -170,5 +171,7 @@ public:
 	static vlBool
 	IsPowerOfTwo( vlUInt uiSize );
 	static VTFEImport *FromVTF( QWidget *pParent, VTFLib::CVTFFile *pFile );
+	static VTFEImport *FromFont( QWidget *pParent, vlByte *buff, int width, int height );
+	static VTFEImport *Standalone( QWidget *pParent );
 	void SetDefaults();
 };

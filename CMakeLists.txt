@@ -45,6 +45,12 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install" CACHE PATH "..." FORCE)
 endif ()
 
+
+set(VPKEDIT_BUILD_CLI OFF CACHE BOOL "" FORCE)
+set(VPKEDIT_BUILD_GUI OFF CACHE BOOL "" FORCE)
+set(VPKEDIT_BUILD_INSTALLER OFF CACHE BOOL "" FORCE)
+
+
 if (UNIX)
     set(QT_INCLUDE "/usr/include/x86_64-linux-gnu/qt6")
     if (NOT DEFINED QT_BASEDIR)
@@ -114,17 +120,20 @@ set(SRC
         src/MainWindow.cpp src/MainWindow.h
         src/supported_formats/TiffSupport.cpp
         src/supported_formats/TiffSupport.h
-        src/Options.cpp)
+        src/Options.cpp
+        src/EntryTree.h
+        src/EntryTree.cpp)
 
 add_subdirectory(libs/VTFLib)
 add_subdirectory(libs/fmt)
+add_subdirectory(libs/vpklib)
 #add_subdirectory(libs/QColorWheel)
 add_subdirectory(libs/SpeedyKV)
 
 add_executable(${PROJECT_NAME} ${SRC} src/res/res.qrc)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui Qt::OpenGLWidgets vtflib fmt::fmt keyvalues)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui Qt::OpenGLWidgets vtflib fmt::fmt keyvalues libvpkedit)
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${QT_INCLUDE} ${QT_INCLUDE}/QtWidgets" "${QT_INCLUDE}/QtGui" "${QT_INCLUDE}/QtCore" "${QT_INCLUDE}/QtOpenGLWidgets" ${QT_INCLUDE}/QtOpenGL ${OPENGL_glu_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} OpenEXR::OpenEXR Imath::Imath Imath::Half)
+target_include_directories(${PROJECT_NAME} PRIVATE libs/vpklib/include "${QT_INCLUDE} ${QT_INCLUDE}/QtWidgets" "${QT_INCLUDE}/QtGui" "${QT_INCLUDE}/QtCore" "${QT_INCLUDE}/QtOpenGLWidgets" ${QT_INCLUDE}/QtOpenGL ${OPENGL_glu_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} OpenEXR::OpenEXR Imath::Imath Imath::Half)
 
 if (WIN32)
     # Copy these to bundle them with the program in releases

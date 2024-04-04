@@ -64,6 +64,7 @@ int main( int argc, char **argv )
 	if ( !Options::get<bool>( OPT_START_MAXIMIZED ) )
 	{
 		pVTFEdit->show();
+		qInfo() << pVTFEdit->size();
 	}
 	else
 	{

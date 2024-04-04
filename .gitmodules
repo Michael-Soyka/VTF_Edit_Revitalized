@@ -11,3 +11,6 @@
 [submodule "libs/vpklib"]
 	path = libs/vpklib
 	url = https://github.com/craftablescience/VPKEdit.git
+[submodule "libs/VPKTools"]
+	path = libs/VPKTools
+	url = https://github.com/craftablescience/VPKEdit.git

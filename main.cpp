@@ -1,5 +1,4 @@
 #include "dialogs/VTFEdit.h"
-#include "libs/VPKTools/include/vpktool/VPK.h"
 #include "src/MainWindow.h"
 #include "src/Options.h"
 

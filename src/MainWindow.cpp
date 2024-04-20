@@ -625,6 +625,7 @@ void CMainWindow::compressVTFFolder()
 		qInfo() << pVTF->GetMajorVersion();
 		qInfo() << pVtfVersionBox->currentData().toInt();
 		qInfo() << pAuxCompressionLevelBox->currentData().toInt();
+		qInfo() << pathDirectory.isEmpty();
 		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pVTF->GetAuxCompressionLevel() == pAuxCompressionLevelBox->currentData().toInt() && pathDirectory.isEmpty() )
 			continue;
 		qInfo() << "Passed version check.";

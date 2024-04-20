@@ -611,8 +611,10 @@ void CMainWindow::compressVTFFolder()
 			}
 		}
 		qInfo() << "Passed mkdir.";
+		qInfo() << "path:.";
+		qInfo() << path.toStdString().c_str();
 		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toStdString().c_str() );
-
+		qInfo() << "Passed getVTFFileFromVTFFIle.";
 		if ( !pVTF )
 		{
 			QMessageBox::warning( this, "INVALID VTF", "The VTF is invalid.\n" + dirPath, QMessageBox::Ok );
@@ -621,7 +623,7 @@ void CMainWindow::compressVTFFolder()
 
 		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pVTF->GetAuxCompressionLevel() == pAuxCompressionLevelBox->currentData().toInt() && pathDirectory.isEmpty() )
 			continue;
-
+		qInfo() << "Passed version check.";
 		pVTF->SetVersion( 7, pVtfVersionBox->currentData().toInt() );
 		qInfo() << "Passed set version.";
 		if ( pAuxCompressionBox->isChecked() )

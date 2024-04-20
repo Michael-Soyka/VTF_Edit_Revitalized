@@ -611,7 +611,7 @@ void CMainWindow::compressVTFFolder()
 			}
 		}
 
-		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toUtf8().constData() );
+		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toStdString().c_str() );
 
 		if ( !pVTF )
 		{

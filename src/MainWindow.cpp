@@ -617,7 +617,7 @@ void CMainWindow::compressVTFFolder()
 		qInfo() << "Passed mkdir.";
 		qInfo() << "path:";
 		qInfo() << path.toStdString().c_str();
-		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toStdString().c_str() );
+		std::unique_ptr<VTFLib::CVTFFile> pVTF( getVTFFromVTFFile( path.toStdString().c_str() ) );
 		qInfo() << "Passed getVTFFileFromVTFFIle.";
 		if ( !pVTF || !pVTF->IsLoaded() )
 		{
@@ -657,7 +657,6 @@ void CMainWindow::compressVTFFolder()
 				QMessageBox::warning( this, "Unable to save VTF", "The VTF cannot be saved.\n" + dirPath, QMessageBox::Ok );
 			}
 		}
-		delete pVTF;
 	}
 #endif
 }

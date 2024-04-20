@@ -610,7 +610,7 @@ void CMainWindow::compressVTFFolder()
 					QDir().mkdir( dirCreator );
 			}
 		}
-
+		qInfo() << "Passed mkdir.";
 		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toStdString().c_str() );
 
 		if ( !pVTF )
@@ -623,23 +623,25 @@ void CMainWindow::compressVTFFolder()
 			continue;
 
 		pVTF->SetVersion( 7, pVtfVersionBox->currentData().toInt() );
-
+		qInfo() << "Passed set version.";
 		if ( pAuxCompressionBox->isChecked() )
 		{
 			pVTF->SetAuxCompressionLevel( pAuxCompressionLevelBox->currentData().toInt() );
 		}
-
+		qInfo() << "Passed set aux compression.";
 		if ( pathDirectory.isEmpty() )
 		{
 			if ( !pVTF->Save( path.toUtf8().constData() ) )
 			{
 				QMessageBox::warning( this, "Unable to save VTF", "The VTF cannot be saved.\n" + dirPath, QMessageBox::Ok );
 			}
+			qInfo() << "Passed (in place) saved.";
 		}
 		else
 		{
 			if ( !pVTF->Save( ( pathDirectory + "/" + temp.join( "" ) ).toUtf8().constData() ) )
 			{
+				qInfo() << "Passed (redir) saved.";
 				QMessageBox::warning( this, "Unable to save VTF", "The VTF cannot be saved.\n" + dirPath, QMessageBox::Ok );
 			}
 		}

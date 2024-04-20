@@ -593,7 +593,8 @@ void CMainWindow::compressVTFFolder()
 	while ( it.hasNext() )
 	{
 		QString path = it.next();
-
+		qInfo() << "path:";
+		qInfo() << path;
 		QStringList temp = path.split( dirPath );
 		temp.pop_front();
 		QStringList temp2 = temp.join( "" ).split( QDir::separator() );

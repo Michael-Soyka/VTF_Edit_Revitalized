@@ -592,68 +592,57 @@ void CMainWindow::compressVTFFolder()
 	QDirIterator it( dirPath, QStringList() << "*.vtf", QDir::Files, QDirIterator::Subdirectories );
 	while ( it.hasNext() )
 	{
-		qInfo() << "has next?";
 		QString path = it.next();
-		qInfo() << "has next?";
-		qInfo() << it.hasNext();
-		qInfo() << "path:";
-		qInfo() << path;
+
 		QStringList temp = path.split( dirPath );
 		temp.pop_front();
-		QStringList temp2 = temp.join( "" ).split( QDir::separator() );
-		temp2.pop_front();
-		temp2.pop_back();
+		QStringList temp2 = temp.join( "" ).split( "/" );
+		if ( temp2.size() >= 2 )
+		{
+			temp2.pop_front();
+			temp2.pop_back();
+		}
 
 		if ( !pathDirectory.isEmpty() )
 		{
 			QString dirCreator = pathDirectory;
 			for ( const auto &tPath : temp2 )
 			{
-				dirCreator += QDir::separator() + tPath;
+				dirCreator += "/" + tPath;
 				if ( !QDir().exists( dirCreator ) )
 					QDir().mkdir( dirCreator );
 			}
 		}
-		qInfo() << "Passed mkdir.";
-		qInfo() << "path:";
-		qInfo() << path.toStdString().c_str();
+
 		std::unique_ptr<VTFLib::CVTFFile> pVTF( getVTFFromVTFFile( path.toStdString().c_str() ) );
-		qInfo() << "Passed getVTFFileFromVTFFIle.";
+
 		if ( !pVTF || !pVTF->IsLoaded() )
 		{
 			QMessageBox::warning( this, "INVALID VTF", "The VTF is invalid.\n" + dirPath, QMessageBox::Ok );
 			continue;
 		}
-		qInfo() << "Passed validation.";
-		qInfo() << pVTF->GetMinorVersion();
-		qInfo() << pVTF->GetMajorVersion();
-		qInfo() << pVtfVersionBox->currentData().toInt();
-		qInfo() << pAuxCompressionLevelBox->currentData().toInt();
-		qInfo() << pathDirectory.isEmpty();
-		qInfo() << pVTF->GetAuxCompressionLevel();
+
 		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pVTF->GetAuxCompressionLevel() == pAuxCompressionLevelBox->currentData().toInt() && pathDirectory.isEmpty() )
 			continue;
-		qInfo() << "Passed version check.";
+
 		pVTF->SetVersion( 7, pVtfVersionBox->currentData().toInt() );
-		qInfo() << "Passed set version.";
+
 		if ( pAuxCompressionBox->isChecked() )
 		{
 			pVTF->SetAuxCompressionLevel( pAuxCompressionLevelBox->currentData().toInt() );
 		}
-		qInfo() << "Passed set aux compression.";
+
 		if ( pathDirectory.isEmpty() )
 		{
 			if ( !pVTF->Save( path.toUtf8().constData() ) )
 			{
 				QMessageBox::warning( this, "Unable to save VTF", "The VTF cannot be saved.\n" + dirPath, QMessageBox::Ok );
 			}
-			qInfo() << "Passed (in place) saved.";
 		}
 		else
 		{
 			if ( !pVTF->Save( ( pathDirectory + "/" + temp.join( "" ) ).toUtf8().constData() ) )
 			{
-				qInfo() << "Passed (redir) saved.";
 				QMessageBox::warning( this, "Unable to save VTF", "The VTF cannot be saved.\n" + dirPath, QMessageBox::Ok );
 			}
 		}
@@ -703,7 +692,7 @@ void CMainWindow::foldersToVTF()
 
 		QStringList temp = path.split( importFrom );
 		temp.pop_front();
-		QStringList temp2 = temp.join( "" ).split( QDir::separator() );
+		QStringList temp2 = temp.join( "" ).split( "/" );
 		temp2.pop_front();
 		temp2.pop_back();
 
@@ -712,7 +701,7 @@ void CMainWindow::foldersToVTF()
 			QString dirCreator;
 			for ( const auto &tPath : temp2 )
 			{
-				dirCreator += QDir::separator() + tPath;
+				dirCreator += "/" + tPath;
 				if ( !QDir().exists( dirCreator ) )
 					QDir().mkdir( dirCreator );
 			}

@@ -615,7 +615,7 @@ void CMainWindow::compressVTFFolder()
 		qInfo() << path.toStdString().c_str();
 		VTFLib::CVTFFile *pVTF = getVTFFromVTFFile( path.toStdString().c_str() );
 		qInfo() << "Passed getVTFFileFromVTFFIle.";
-		if ( !pVTF )
+		if ( !pVTF || !pVTF->IsLoaded() )
 		{
 			QMessageBox::warning( this, "INVALID VTF", "The VTF is invalid.\n" + dirPath, QMessageBox::Ok );
 			continue;

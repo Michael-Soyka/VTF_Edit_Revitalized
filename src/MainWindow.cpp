@@ -592,6 +592,7 @@ void CMainWindow::compressVTFFolder()
 	QDirIterator it( dirPath, QStringList() << "*.vtf", QDir::Files, QDirIterator::Subdirectories );
 	while ( it.hasNext() )
 	{
+		qInfo() << "hasnext?";
 		QString path = it.next();
 		qInfo() << "path:";
 		qInfo() << path;

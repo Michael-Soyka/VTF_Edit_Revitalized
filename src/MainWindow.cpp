@@ -15,6 +15,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPainter>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStyle>
@@ -35,36 +36,63 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	pMainLayout->addWidget( pImageTabWidget, 0, 1, Qt::AlignTop );
 
-	scrollWidget = new ZoomScrollArea( this );
+	//	scrollWidget = new ZoomScrollArea( this );
 
-	pImageViewWidget = new ImageViewWidget( scrollWidget );
+	//	pImageViewWidget->setMinimumSize( 512, 512 );
+	//	pImageViewWidget->setSizePolicy( QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum );
+	m_pScrollWidget = new QWidget( this );
+	m_pScrollWidget->setMinimumSize( 600, 600 );
+	this->resize( 512, 512 );
+	auto scrollLayout = new QGridLayout( m_pScrollWidget );
 
-	scrollWidget->setWidget( pImageViewWidget );
-	scrollWidget->setMinimumSize( 512, 512 );
+	pImageViewWidget = new ImageViewWidget( m_pScrollWidget );
 
-	scrollWidget->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
-	scrollWidget->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	scrollLayout->addWidget( pImageViewWidget, 0, 0 );
 
-	scrollWidget->horizontalScrollBar()->setRange( 0, 4096 );
-	scrollWidget->verticalScrollBar()->setRange( 0, 4096 );
-	QPoint topLeft = scrollWidget->viewport()->rect().topLeft();
-	scrollWidget->viewport()->resize( 4096, 4096 );
+	m_pHorizontalScrollBar = new QScrollBar( Qt::Horizontal, m_pScrollWidget );
+	m_pHorizontalScrollBar->setMinimum( 0 );
+	m_pHorizontalScrollBar->setMaximum( 4096 );
+	m_pHorizontalScrollBar->setValue( 4096 / 2 );
+	pImageViewWidget->setXOffset( 4096 / 2 );
+	pImageViewWidget->setYOffset( 4096 / 2 );
 
-	QSize areaSize = scrollWidget->viewport()->size();
-	qInfo() << this->size();
-	scrollWidget->viewport()->move( 255, 255 );
+	scrollLayout->addWidget( m_pHorizontalScrollBar, 1, 0 );
+
+	m_pVerticalScrollBar = new QScrollBar( Qt::Vertical, m_pScrollWidget );
+	m_pVerticalScrollBar->setMinimum( 0 );
+	m_pVerticalScrollBar->setMaximum( 4096 );
+	m_pVerticalScrollBar->setValue( 4096 / 2 );
+
+	scrollLayout->addWidget( m_pVerticalScrollBar, 0, 1 );
+
+	pMainLayout->addWidget( m_pScrollWidget, 1, 1 );
+	//	scrollWidget->setWidget( pImageViewWidget );
+	//	scrollWidget->setMinimumSize( 512, 512 );
+	//
+	//	scrollWidget->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	//	scrollWidget->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	//
+	//	scrollWidget->horizontalScrollBar()->setRange( 0, 4096 );
+	//	scrollWidget->verticalScrollBar()->setRange( 0, 4096 );
+	//	QPoint topLeft = scrollWidget->viewport()->rect().topLeft();
+	//	scrollWidget->viewport()->resize( 4096, 4096 );
+
+	//	QSize areaSize = scrollWidget->viewport()->size();
+	//	qInfo() << this->size();
+
+	//	scrollWidget->viewport()->move( 255, 255 );
 	//	qInfo() << scrollWidget->rect().center();
 	//	scrollWidget->verticalScrollBar()->setPageStep( areaSize.height() / 0.01 );
 	//	scrollWidget->horizontalScrollBar()->setPageStep( areaSize.width() / 0.01 );
-	scrollWidget->horizontalScrollBar()->setValue( 4096 / 2 );
-	scrollWidget->verticalScrollBar()->setValue( 4096 / 2 );
+	//	scrollWidget->horizontalScrollBar()->setValue( 4096 / 2 );
+	//	scrollWidget->verticalScrollBar()->setValue( 4096 / 2 );
 	//	scrollWidget->horizontalScrollBar()->setMinimum( 0 );
 	//	scrollWidget->horizontalScrollBar()->setMaximum( 512 );
 	//	scrollWidget->verticalScrollBar()->setMinimum( 0 );
 	//	scrollWidget->verticalScrollBar()->setMaximum( 512 );
 	//	scrollWidget->ensureVisible( 0, 0, 0, 0 );
 
-	pMainLayout->addWidget( scrollWidget, 1, 1 );
+	//	pMainLayout->addWidget( scrollWidget, 1, 1 );
 
 	auto pSettingsFileSystemTab = new QTabWidget( this );
 
@@ -120,9 +148,9 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 				 }
 			 } );
 
-	connect( scrollWidget->horizontalScrollBar(), &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setXOffset );
+	connect( m_pHorizontalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setXOffset );
 
-	connect( scrollWidget->verticalScrollBar(), &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setYOffset );
+	connect( m_pVerticalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setYOffset );
 
 	connect( pImageTabWidget, &QTabBar::tabCloseRequested, this, &CMainWindow::removeVTFTab );
 
@@ -130,19 +158,19 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	connect( pImageViewWidget, &ImageViewWidget::animated, pImageSettingsWidget, &ImageSettingsWidget::set_frame );
 
-	connect( scrollWidget, &ZoomScrollArea::onScrollUp, this, [&, areaSize]
-			 {
-				 pImageViewWidget->zoom( 0.05 );
-				 scrollWidget->verticalScrollBar()->setPageStep( ( areaSize.height() - ( areaSize.height() * pImageViewWidget->getZoom() ) ) );
-				 scrollWidget->horizontalScrollBar()->setPageStep( ( areaSize.width() - ( areaSize.width() * pImageViewWidget->getZoom() ) ) );
-			 } );
-
-	connect( scrollWidget, &ZoomScrollArea::onScrollDown, this, [&, areaSize]
-			 {
-				 pImageViewWidget->zoom( -0.05 );
-				 scrollWidget->verticalScrollBar()->setPageStep( ( ( areaSize.height() * pImageViewWidget->getZoom() ) - ( areaSize.height() ) ) );
-				 scrollWidget->horizontalScrollBar()->setPageStep( ( ( areaSize.width() * pImageViewWidget->getZoom() ) - ( areaSize.width() ) ) );
-			 } );
+	//	connect( scrollWidget, &ZoomScrollArea::onScrollUp, this, [&, areaSize]
+	//			 {
+	//				 pImageViewWidget->zoom( 0.05 );
+	//				 scrollWidget->verticalScrollBar()->setPageStep( ( areaSize.height() - ( areaSize.height() * pImageViewWidget->getZoom() ) ) );
+	//				 scrollWidget->horizontalScrollBar()->setPageStep( ( areaSize.width() - ( areaSize.width() * pImageViewWidget->getZoom() ) ) );
+	//			 } );
+	//
+	//	connect( scrollWidget, &ZoomScrollArea::onScrollDown, this, [&, areaSize]
+	//			 {
+	//				 pImageViewWidget->zoom( -0.05 );
+	//				 scrollWidget->verticalScrollBar()->setPageStep( ( ( areaSize.height() * pImageViewWidget->getZoom() ) - ( areaSize.height() ) ) );
+	//				 scrollWidget->horizontalScrollBar()->setPageStep( ( ( areaSize.width() * pImageViewWidget->getZoom() ) - ( areaSize.width() ) ) );
+	//			 } );
 
 	setupMenuBar();
 }
@@ -219,14 +247,14 @@ void CMainWindow::tabChanged( int index )
 	pImageSettingsWidget->set_vtf( pVTF );
 	pImageInfo->update_info( pVTF );
 
-	if ( pVTF )
-	{
-		scrollWidget->verticalScrollBar()->setSliderPosition( pVTF->GetHeight() / 2 );
-		scrollWidget->horizontalScrollBar()->setSliderPosition( pVTF->GetWidth() / 2 );
-	}
+	//		if ( pVTF )
+	//		{
+	//			scrollWidget->verticalScrollBar()->setSliderPosition( pVTF->GetHeight() / 2 );
+	//			scrollWidget->horizontalScrollBar()->setSliderPosition( pVTF->GetWidth() / 2 );
+	//		}
 
-	scrollWidget->horizontalScrollBar()->setValue( 4096 / 2 );
-	scrollWidget->verticalScrollBar()->setValue( 4096 / 2 );
+	m_pHorizontalScrollBar->setValue( 4096 / 2 );
+	m_pVerticalScrollBar->setValue( 4096 / 2 );
 }
 
 void CMainWindow::setupMenuBar()
@@ -650,6 +678,12 @@ void CMainWindow::compressVTFFolder()
 #endif
 }
 
+struct VTFFolder
+{
+	bool isAnimation = false;
+	QStringList paths {};
+};
+
 void CMainWindow::foldersToVTF()
 {
 	auto recentPaths = Options::get<QStringList>( STR_OPEN_RECENT );
@@ -684,8 +718,19 @@ void CMainWindow::foldersToVTF()
 	if ( pVTFImportWindow->IsCancelled() )
 		return;
 
-	QStringList VTFPaths;
-	QDirIterator it( importFrom, QStringList() << "*.vtf", QDir::Files, QDirIterator::Subdirectories );
+	//	QStringList VTFPaths;
+	std::map<QString, VTFFolder> folders;
+	VTFFolder *current;
+	QStringList list;
+	list << "*.bmp"
+		 << "*.gif"
+		 << "*.jpg"
+		 << "*.jpeg"
+		 << "*.png"
+		 << "*.tga"
+		 << ".animation.txt";
+
+	QDirIterator it( importFrom, list, QDir::Files | QDir::Hidden, QDirIterator::Subdirectories );
 	while ( it.hasNext() )
 	{
 		QString path = it.next();
@@ -695,10 +740,24 @@ void CMainWindow::foldersToVTF()
 		QStringList temp2 = temp.join( "" ).split( "/" );
 		temp2.pop_front();
 		temp2.pop_back();
+		QString joined = temp2.join( "/" );
+
+		if ( !folders.contains( joined ) )
+		{
+			folders[joined] = {};
+		}
+
+		current = &folders[joined];
+
+		if ( path.endsWith( ".animation.txt" ) )
+		{
+			current->isAnimation = true;
+			continue;
+		}
 
 		if ( importFrom != exportTo )
 		{
-			QString dirCreator;
+			QString dirCreator = exportTo;
 			for ( const auto &tPath : temp2 )
 			{
 				dirCreator += "/" + tPath;
@@ -706,6 +765,75 @@ void CMainWindow::foldersToVTF()
 					QDir().mkdir( dirCreator );
 			}
 		}
+
+		current->paths.push_back( path );
+	}
+
+	QProgressBar frogressBar( this );
+	frogressBar.setMinimum( 0 );
+	frogressBar.setTextVisible( true );
+	frogressBar.setMinimumSize( 512, 64 );
+	frogressBar.move( ( this->width() / 2 ) - 256, ( this->height() / 2 ) - 32 );
+
+	for ( auto &[first, second] : folders )
+	{
+		frogressBar.show();
+		second.paths.sort();
+		pVTFImportWindow->clearImageList();
+		QString fullpath = exportTo;
+		if ( !first.isEmpty() )
+			fullpath.push_back( "/" + first + "/" );
+
+		if ( second.isAnimation )
+		{
+			frogressBar.setMaximum( 1 );
+			QString vtfFileName = ( fullpath + "/" + QFileInfo( second.paths[0] ).baseName() + ".vtf" );
+			frogressBar.setFormat( "Creating Animated VTF: " + vtfFileName );
+			frogressBar.setValue( 0 );
+			for ( const auto &file : second.paths )
+			{
+				pVTFImportWindow->AddImage( file );
+			}
+
+			VTFErrorType err;
+			auto vtf = pVTFImportWindow->GenerateVTF( err );
+			if ( err != SUCCESS )
+			{
+				QMessageBox::warning( this, "VTF Failed to generate.", QString( "The VTF failed to generate, reason: " ) + ( ( err == INVALID_IMAGE ) ? "Invalid Image" : "No Image Data" ) );
+				frogressBar.setValue( 1 );
+				frogressBar.close();
+				continue;
+			}
+			bool saved = vtf->Save( vtfFileName.toStdString().c_str() );
+			if ( !saved )
+				QMessageBox::warning( this, "VTF Failed to save.", QString( "The VTF failed to save, file: " ) + vtfFileName );
+
+			frogressBar.setValue( 1 );
+			frogressBar.close();
+			continue;
+		}
+
+		frogressBar.setMaximum( second.paths.size() );
+		frogressBar.setValue( 0 );
+		for ( const auto &file : second.paths )
+		{
+			QString vtfFileName = ( fullpath + "/" + QFileInfo( file ).baseName() + ".vtf" );
+			frogressBar.setFormat( "Creating VTF: " + vtfFileName );
+			frogressBar.setValue( frogressBar.value() + 1 );
+			pVTFImportWindow->AddImage( file );
+			VTFErrorType err;
+			auto vtf = pVTFImportWindow->GenerateVTF( err );
+			if ( err != SUCCESS )
+			{
+				QMessageBox::warning( this, "VTF Failed to generate.", QString( "The VTF failed to generate, reason: " ) + ( ( err == INVALID_IMAGE ) ? "Invalid Image" : "No Image Data" ) );
+				continue;
+			}
+			bool saved = vtf->Save( vtfFileName.toStdString().c_str() );
+			if ( !saved )
+				QMessageBox::warning( this, "VTF Failed to save.", QString( "The VTF failed to save, file: " ) + vtfFileName.toStdString().c_str() );
+			pVTFImportWindow->clearImageList();
+		}
+		frogressBar.close();
 	}
 }
 
@@ -1040,8 +1168,8 @@ void CMainWindow::processCLIArguments( const int &argCount, char **pString )
 }
 void CMainWindow::resizeEvent( QResizeEvent *r )
 {
-	auto pos = scrollWidget->pos();
-	pImageViewWidget->move( -r->size().width() - pos.x(), -r->size().height() - pos.y() );
+	//	auto pos = scrollWidget->pos();
+	//	pImageViewWidget->move( -r->size().width() - pos.x(), -r->size().height() - pos.y() );
 	QDialog::resizeEvent( r );
 }
 

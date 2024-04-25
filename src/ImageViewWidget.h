@@ -49,6 +49,10 @@ public:
 
 	void paintGL() override;
 
+	void wheelEvent( QWheelEvent *event ) override;
+
+	bool event( QEvent * ) override;
+
 	void set_red( bool red )
 	{
 		if ( red == hasRed_ )
@@ -184,6 +188,8 @@ private:
 	bool hasAlpha_ = true;
 
 	int animationTimer_ = -1;
+
+	bool m_isCTRLHeld;
 
 	int currentFrame_ = 0;
 	int currentFace_ = 0;

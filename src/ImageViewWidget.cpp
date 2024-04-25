@@ -4,8 +4,8 @@
 #include <QColorSpace>
 #include <QPainter>
 #include <QStyleOption>
+#include <QWheelEvent>
 #include <iostream>
-#include <qfile.h>
 
 #define remap( value, low1, high1, low2, high2 ) ( low2 + ( value - low1 ) * ( high2 - low2 ) / ( high1 - low1 ) )
 
@@ -60,108 +60,12 @@ void ImageViewWidget::set_vtf( VTFLib::CVTFFile *file )
 	if ( !file )
 		return;
 
-	// setMinimumSize( { static_cast<int>( file->GetWidth() ), static_cast<int>( file->GetHeight() ) } );
-
 	update_size();
 }
 
 void ImageViewWidget::initializeGL()
 {
-	// Set up the rendering context, load shaders and other resources, etc.:
 	initializeOpenGLFunctions();
-
-	//	QStyleOption opt;
-	//	opt.initFrom( this );
-	//
-	//	auto clearColor = opt.palette.color( QPalette::ColorRole::Text );
-	//	glClearColor( clearColor.redF(), clearColor.greenF(), clearColor.blueF(), 0.0f );
-	//	glEnable( GL_BLEND );
-	//	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	//	//	glEnable( GL_DEPTH_TEST );
-	//	//	glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-	//	//	glEnable( GL_COLOR_MATERIAL );
-	//
-	//	unsigned int buffer;
-	//	glGenBuffers( 1, &buffer );
-	//	glBindBuffer( GL_ARRAY_BUFFER, buffer );
-	//	glBufferData( GL_ARRAY_BUFFER, sizeof( texCoords ), texCoords, GL_STATIC_DRAW );
-	//
-	//	unsigned int ibo;
-	//	glGenBuffers( 1, &ibo );
-	//	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
-	//	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( texIndeces ), texIndeces, GL_STATIC_DRAW );
-	//
-	//	glEnableVertexAttribArray( 0 );
-	//	glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof( GLfloat ) * 8, 0 );
-	//
-	//	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof( float ), (void *)( 3 * sizeof( float ) ) );
-	//	glEnableVertexAttribArray( 1 );
-	//
-	//	glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof( float ), (void *)( 6 * sizeof( float ) ) );
-	//	glEnableVertexAttribArray( 2 );
-	//
-	//	unsigned int vertexShader;
-	//	vertexShader = glCreateShader( GL_VERTEX_SHADER );
-	//
-	//	auto vshad = QFile( ":/vertex.glsl" );
-	//	vshad.open( QFile::ReadOnly );
-	//	const char *vShadSource = vshad.readAll().constData();
-	//
-	//	glShaderSource( vertexShader, 1, &vShadSource, NULL );
-	//	glCompileShader( vertexShader );
-	//
-	//	vshad.close();
-	//
-	//	int success;
-	//	char infoLog[512];
-	//	glGetShaderiv( vertexShader, GL_COMPILE_STATUS, &success );
-	//
-	//	if ( !success )
-	//	{
-	//		glGetShaderInfoLog( vertexShader, 512, NULL, infoLog );
-	//		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-	//				  << infoLog << std::endl;
-	//	}
-	//
-	//	unsigned int fragmentShader;
-	//	fragmentShader = glCreateShader( GL_FRAGMENT_SHADER );
-	//
-	//	auto fshad = QFile( ":/fragment.glsl" );
-	//	fshad.open( QFile::ReadOnly );
-	//	const char *fShadSource = fshad.readAll().constData();
-	//
-	//	glShaderSource( fragmentShader, 1, &fShadSource, NULL );
-	//	glCompileShader( fragmentShader );
-	//
-	//	fshad.close();
-	//
-	//	glGetShaderiv( fragmentShader, GL_COMPILE_STATUS, &success );
-	//
-	//	if ( !success )
-	//	{
-	//		glGetShaderInfoLog( fragmentShader, 512, NULL, infoLog );
-	//		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
-	//				  << infoLog << std::endl;
-	//	}
-	//
-	//	shaderProgram = glCreateProgram();
-	//
-	//	glAttachShader( shaderProgram, vertexShader );
-	//	glAttachShader( shaderProgram, fragmentShader );
-	//	glLinkProgram( shaderProgram );
-	//
-	//	glGetProgramiv( shaderProgram, GL_LINK_STATUS, &success );
-	//	if ( !success )
-	//	{
-	//		glGetProgramInfoLog( shaderProgram, 512, NULL, infoLog );
-	//		std::cout << "ERROR::SHADER::SHADERPROGRAM::INITIATION FAILED\n"
-	//				  << infoLog << std::endl;
-	//	}
-	//
-	//	glUseProgram( shaderProgram );
-	//
-	//	glDeleteShader( vertexShader );
-	//	glDeleteShader( fragmentShader );
 
 	shaderProgram = new QOpenGLShaderProgram( this );
 
@@ -182,16 +86,6 @@ void ImageViewWidget::initializeGL()
 	this->indexes.allocate( texIndeces, sizeof( texIndeces ) );
 	this->indexes.release();
 
-	//	glEnableVertexAttribArray( 0 );
-	//	glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof( GLfloat ) * 8, 0 );
-	//
-	//	glEnableVertexAttribArray( 1 );
-	//		glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof( float ), (void *)( 3 * sizeof( float ) ) );
-	//
-	//	glEnableVertexAttribArray( 2 );
-	//	glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof( float ), (void *)( 6 * sizeof( float ) ) );
-
-	//	glGenTextures( 1, &texture );
 	this->resize( 4096, 4096 );
 }
 
@@ -204,7 +98,6 @@ void ImageViewWidget::resizeGL( int w, int h )
 void ImageViewWidget::paintGL()
 {
 	// Draw the scene:
-
 	QStyleOption opt;
 	opt.initFrom( this );
 	auto clearColor = opt.palette.color( QPalette::ColorRole::Window );
@@ -215,8 +108,6 @@ void ImageViewWidget::paintGL()
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	this->glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
-	//	glUniform1i( RGBAProcessing, rgba_ );
 
 	shaderProgram->bind();
 
@@ -231,8 +122,7 @@ void ImageViewWidget::paintGL()
 						  0.0f, 0.0f, zoom_, 0.0f,
 						  0.0f, 0.0f, 0.0f, 1.0f };
 
-	QVector2D offsets = { remap( xOffset_, -4096, 4096, 0.5f, -0.5f ), remap( yOffset_, -4096, 4096, -0.5f, 0.5f ) };
-
+	QVector2D offsets = { remap( xOffset_, 0, 4096, 0.5f * zoom_, -0.5f * zoom_ ), remap( yOffset_, 0, 4096, -0.5f * zoom_, 0.5f * zoom_ ) };
 	//	qInfo() << offsets;
 
 	int OFFSETProcessing = shaderProgram->uniformLocation( "OFFSET" ); // glGetUniformLocation( shaderProgram, "RGBA" );
@@ -253,12 +143,6 @@ void ImageViewWidget::paintGL()
 	glEnableVertexAttribArray( 2 );
 	glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof( float ), (void *)( 6 * sizeof( float ) ) );
 
-	//		shaderProgram->setAttributeArray( 0, GL_FLOAT, 0, sizeof( GLfloat ) * 8 );
-	//		shaderProgram->enableAttributeArray( 0 );
-	//		shaderProgram->setAttributeArray( 1, GL_FLOAT, (void *)( 3 * sizeof( float ) ), sizeof( GLfloat ) * 8 );
-	//		shaderProgram->enableAttributeArray( 1 );
-	//		shaderProgram->setAttributeArray( 2, GL_FLOAT, (void *)( 6 * sizeof( float ) ), sizeof( GLfloat ) * 8 );
-	//		shaderProgram->enableAttributeArray( 2 );
 	if ( file_ )
 	{
 		GLuint width, height, whatever;
@@ -270,8 +154,6 @@ void ImageViewWidget::paintGL()
 		texture.create();
 		texture.setData( QImage( imgData, width, height, QImage::Format_RGBA8888 ) );
 
-		// texture.setData( 0, 0, 0, width, height, whatever, QOpenGLTexture::PixelFormat::RGBA, QOpenGLTexture::PixelType::UInt8, imgData );
-
 		texture.bind( 0 );
 
 		delete[] imgData;
@@ -280,14 +162,8 @@ void ImageViewWidget::paintGL()
 	{
 		static constexpr unsigned char buff[4] = { 0, 0, 0, 0 };
 		texture.create();
-		// 0, 0, 0, 1, 1, 1, QOpenGLTexture::PixelFormat::RGBA, QOpenGLTexture::PixelType::UInt8, buff
 		texture.setData( QImage( buff, 1, 1, QImage::Format_RGBA8888 ) );
 		texture.bind( 0 );
-		//		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, buff );
-		//		glGenerateMipmap( GL_TEXTURE_2D );
-		//		glBindTexture( GL_TEXTURE_2D, texture );
-		//		setMinimumSize( { 256, 256 } );
-		//		resize( { 256, 256 } );
 	}
 
 	glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr );
@@ -375,6 +251,57 @@ void ImageViewWidget::paintGL()
 //	painter.drawImage( target, image_, QRect( 0, 0, image_.width(), image_.height() ) );
 // }
 
+void ImageViewWidget::wheelEvent( QWheelEvent *event )
+{
+	if ( event->angleDelta().y() > 0 ) // up Wheel
+	{
+		if ( m_isCTRLHeld )
+		{
+			zoom( 0.1 );
+			event->ignore();
+			return;
+		}
+	}
+	else if ( event->angleDelta().y() < 0 ) // down Wheel
+	{
+		if ( m_isCTRLHeld )
+		{
+			zoom( -0.1 );
+			event->ignore();
+			return;
+		}
+	}
+	QOpenGLWidget::wheelEvent( event );
+}
+
+bool ImageViewWidget::event( QEvent *event )
+{
+	if ( event->type() == QEvent::KeyPress )
+	{
+		auto ke = static_cast<QKeyEvent *>( event );
+		if ( ( ke->key() == Qt::Key_Control ) )
+			m_isCTRLHeld = true;
+	}
+
+	if ( event->type() == QEvent::KeyRelease )
+	{
+		auto ke = static_cast<QKeyEvent *>( event );
+		if ( ( ke->key() == Qt::Key_Control ) )
+			m_isCTRLHeld = false;
+	}
+
+	// When we lose focus, we can no longer check for key events, so to prevent
+	// weird behaviour upon defocus, we set m_isCTRLHeld to false.
+	if ( event->type() == QEvent::FocusOut )
+	{
+		auto fe = static_cast<QFocusEvent *>( event );
+		if ( fe->lostFocus() )
+			m_isCTRLHeld = false;
+	}
+
+	return QOpenGLWidget::event( event );
+}
+
 void ImageViewWidget::zoom( float amount )
 {
 	if ( amount == 0 )
@@ -390,8 +317,8 @@ void ImageViewWidget::update_size()
 {
 	if ( !file_ )
 		return;
+
 	this->update();
-	// setMinimumSize( { static_cast<int>( file_->GetWidth() * zoom_ ), static_cast<int>( file_->GetHeight() * zoom_ ) } );
 }
 void ImageViewWidget::timerEvent( QTimerEvent *event )
 {

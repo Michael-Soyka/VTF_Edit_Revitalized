@@ -38,7 +38,9 @@ namespace ui
 		InfoWidget *pImageInfo;
 		QTabBar *pImageTabWidget;
 		QMenuBar *m_pMainMenuBar;
-		ZoomScrollArea *scrollWidget;
+		QWidget *m_pScrollWidget;
+		QScrollBar *m_pHorizontalScrollBar;
+		QScrollBar *m_pVerticalScrollBar;
 		static VTFLib::CVTFFile *getVTFFromVTFFile( const char *path );
 		void addVTFFromPathToTab( const QString &path );
 		void removeVTFTab( int index );

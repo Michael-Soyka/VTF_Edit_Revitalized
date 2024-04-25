@@ -83,7 +83,7 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 
 				 if ( file_->GetFrameCount() <= 1 )
 					 return; // Do not animate when we do not have frames to animate, lol.
-				 
+
 				 if ( animateButton->text() == "Animate" )
 				 {
 					 viewer->startAnimation( frameBox->value() );
@@ -164,6 +164,8 @@ void ImageSettingsWidget::set_vtf( VTFLib::CVTFFile *file )
 	frame_->setRange( 0, file->GetFrameCount() - 1 );
 	face_->setRange( 1, file->GetFaceCount() );
 	startFrame_->setRange( 1, file->GetFrameCount() );
+
+	animateButton->setText( "Animate" ); // Tab switching stops animation, this reflects that.
 
 	// Set the flags
 	uint32_t flags = file->GetFlags();

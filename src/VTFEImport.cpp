@@ -671,6 +671,15 @@ VTFEImport *VTFEImport::FromFont( QWidget *pParent, vlByte *buff, int width, int
 
 	return vVTFImport;
 }
+void VTFEImport::clearImageList()
+{
+	for ( auto image : imageList )
+	{
+		delete image;
+	}
+
+	imageList.clear();
+}
 
 GeneralTab::GeneralTab( VTFEImport *parent ) :
 	QDialog( parent )

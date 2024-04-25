@@ -154,7 +154,6 @@ class VTFEImport : public QDialog
 	explicit VTFEImport( QWidget *pParent );
 	QMap<int, VTFEImageFormat *> imageList;
 	bool isCancelled = true;
-	void AddImage( const QString &qString );
 	void InitializeWidgets();
 
 public:
@@ -173,5 +172,13 @@ public:
 	static VTFEImport *FromVTF( QWidget *pParent, VTFLib::CVTFFile *pFile );
 	static VTFEImport *FromFont( QWidget *pParent, vlByte *buff, int width, int height );
 	static VTFEImport *Standalone( QWidget *pParent );
+	void AddImage( const QString &qString );
+	void clearImageList();
+	[[nodiscard]] const VTFEImageFormat *const grabFirst() const
+	{
+		if ( !imageList.size() < 1 )
+			return nullptr;
+		return imageList[0];
+	}
 	void SetDefaults();
 };

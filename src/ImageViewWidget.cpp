@@ -29,7 +29,6 @@ ImageViewWidget::ImageViewWidget( QWidget *pParent ) :
 
 {
 	setFocusPolicy( Qt::StrongFocus );
-	//	setMinimumSize( { 512, 512 } );
 }
 
 void ImageViewWidget::startAnimation( int fps )

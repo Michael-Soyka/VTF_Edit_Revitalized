@@ -443,6 +443,7 @@ void CMainWindow::compressVTFFile()
 
 	bool compress = false;
 
+#ifdef CHAOS_INITIATIVE
 	connect( pVtfVersionBox, &QComboBox::currentTextChanged, pCompressionDialog, [&pVtfVersionBox, &pAuxCompressionBox]()
 			 {
 				 pAuxCompressionBox->setEnabled( pVtfVersionBox->currentData().toInt() >= 6 );
@@ -454,6 +455,7 @@ void CMainWindow::compressVTFFile()
 				 pAuxCompressionLevelBox->setEnabled( checked );
 				 label2->setEnabled( checked );
 			 } );
+#endif
 
 	connect( pCustomDestination, &QCheckBox::toggled, pCompressionDialog, [&pDestinationLocation, &pSelectDestinationLocation]( bool checked )
 			 {
@@ -509,15 +511,22 @@ void CMainWindow::compressVTFFile()
 			return;
 		}
 
+#ifdef CHAOS_INITIATIVE
 		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pVTF->GetAuxCompressionLevel() == pAuxCompressionLevelBox->currentData().toInt() )
 			continue;
+#else
+		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() )
+			continue;
+#endif
 
 		pVTF->SetVersion( 7, pVtfVersionBox->currentData().toInt() );
 
+#ifdef CHAOS_INITIATIVE
 		if ( pAuxCompressionBox->isChecked() )
 		{
 			pVTF->SetAuxCompressionLevel( pAuxCompressionLevelBox->currentData().toInt() );
 		}
+#endif
 
 		if ( pathDirectory.isEmpty() )
 			pVTF->Save( filePath.toUtf8().constData() );
@@ -612,6 +621,7 @@ void CMainWindow::compressVTFFolder()
 
 	bool compress = false;
 
+#ifdef CHAOS_INITIATIVE
 	connect( pVtfVersionBox, &QComboBox::currentTextChanged, pCompressionDialog, [pVtfVersionBox, pAuxCompressionBox, pAuxCompressionLevelBox, label2]()
 			 {
 				 pAuxCompressionBox->setEnabled( pVtfVersionBox->currentData().toInt() >= 6 );
@@ -623,6 +633,7 @@ void CMainWindow::compressVTFFolder()
 				 pAuxCompressionLevelBox->setEnabled( checked );
 				 label2->setEnabled( checked );
 			 } );
+#endif
 
 	connect( pCustomDestination, &QCheckBox::toggled, pCompressionDialog, [pDestinationLocation, pSelectDestinationLocation]( bool checked )
 			 {
@@ -703,17 +714,21 @@ void CMainWindow::compressVTFFolder()
 			QMessageBox::warning( this, "INVALID VTF", "The VTF is invalid.\n" + dirPath, QMessageBox::Ok );
 			continue;
 		}
-
+#ifdef CHAOS_INITIATIVE
 		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pVTF->GetAuxCompressionLevel() == pAuxCompressionLevelBox->currentData().toInt() && pathDirectory.isEmpty() )
 			continue;
-
+#else
+		if ( pVTF->GetMinorVersion() == pVtfVersionBox->currentData().toInt() && pathDirectory.isEmpty() )
+			continue;
+#endif
 		pVTF->SetVersion( 7, pVtfVersionBox->currentData().toInt() );
 
+#ifdef CHAOS_INITIATIVE
 		if ( pAuxCompressionBox->isChecked() )
 		{
 			pVTF->SetAuxCompressionLevel( pAuxCompressionLevelBox->currentData().toInt() );
 		}
-
+#endif
 		if ( pathDirectory.isEmpty() )
 		{
 			if ( !pVTF->Save( path.toUtf8().constData() ) )

@@ -386,7 +386,7 @@ void CMainWindow::compressVTFFile()
 	auto pVtfVersionBox = new QComboBox( this );
 	int setbackIndex = 1;
 #ifdef CHAOS_INITIATIVE
-	int setbackIndex = 2;
+	setbackIndex = 2;
 	for ( int i = 0; i <= VTF_MINOR_VERSION; i++ )
 #else
 	for ( int i = 0; i <= 5; i++ )

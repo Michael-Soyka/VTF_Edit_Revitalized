@@ -384,7 +384,9 @@ void CMainWindow::compressVTFFile()
 	vBLayout->addWidget( label1, 0, 0, Qt::AlignLeft );
 
 	auto pVtfVersionBox = new QComboBox( this );
+	int setbackIndex = 1;
 #ifdef CHAOS_INITIATIVE
+	int setbackIndex = 2;
 	for ( int i = 0; i <= VTF_MINOR_VERSION; i++ )
 #else
 	for ( int i = 0; i <= 5; i++ )
@@ -392,7 +394,7 @@ void CMainWindow::compressVTFFile()
 	{
 		pVtfVersionBox->addItem( QString::number( VTF_MAJOR_VERSION ) + "." + QString::number( i ), i );
 	}
-	pVtfVersionBox->setCurrentIndex( pVtfVersionBox->count() - 2 );
+	pVtfVersionBox->setCurrentIndex( pVtfVersionBox->count() - setbackIndex );
 	vBLayout->addWidget( pVtfVersionBox, 0, 1, Qt::AlignRight );
 
 #ifdef CHAOS_INITIATIVE
@@ -562,7 +564,9 @@ void CMainWindow::compressVTFFolder()
 	vBLayout->addWidget( label1, 0, 0, Qt::AlignLeft );
 
 	auto pVtfVersionBox = new QComboBox( this );
+	int setbackIndex = 1;
 #ifdef CHAOS_INITIATIVE
+	setbackIndex = 2;
 	for ( int i = 0; i <= VTF_MINOR_VERSION; i++ )
 #else
 	for ( int i = 0; i <= 5; i++ )
@@ -570,7 +574,7 @@ void CMainWindow::compressVTFFolder()
 	{
 		pVtfVersionBox->addItem( QString::number( VTF_MAJOR_VERSION ) + "." + QString::number( i ), i );
 	}
-	pVtfVersionBox->setCurrentIndex( pVtfVersionBox->count() - 2 );
+	pVtfVersionBox->setCurrentIndex( pVtfVersionBox->count() - setbackIndex );
 	vBLayout->addWidget( pVtfVersionBox, 0, 1, Qt::AlignRight );
 
 #ifdef CHAOS_INITIATIVE

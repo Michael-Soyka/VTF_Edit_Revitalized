@@ -125,6 +125,14 @@ set(SRC
         src/EntryTree.cpp)
 
 add_subdirectory(libs/VTFLib)
+
+set_target_properties(
+        vtflib PROPERTIES
+        # I don't know which one of these puts it next to the executable so let's do all of them!
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
 add_subdirectory(libs/fmt)
 add_subdirectory(libs/vpklib)
 #add_subdirectory(libs/QColorWheel)

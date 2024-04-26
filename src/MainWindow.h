@@ -6,6 +6,7 @@
 
 #include <QDialog>
 #include <QFileInfo>
+#include <QMainWindow>
 #include <QMenuBar>
 #include <QScrollArea>
 #include <QWheelEvent>
@@ -17,14 +18,14 @@ namespace ui
 
 	class ZoomScrollArea;
 
-	class CMainWindow : public QDialog
+	class CMainWindow : public QMainWindow
 	{
 		Q_OBJECT
 
 		QHash<intptr_t, VTFLib::CVTFFile *> vtfWidgetList;
 
 	public:
-		CMainWindow( QWidget *pParent = nullptr );
+		CMainWindow();
 		~CMainWindow()
 		{
 			foreach( auto vtf, vtfWidgetList )

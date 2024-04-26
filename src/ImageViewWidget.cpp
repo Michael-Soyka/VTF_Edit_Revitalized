@@ -85,8 +85,6 @@ void ImageViewWidget::initializeGL()
 	this->indexes.bind();
 	this->indexes.allocate( texIndeces, sizeof( texIndeces ) );
 	this->indexes.release();
-
-	this->resize( 4096, 4096 );
 }
 
 void ImageViewWidget::resizeGL( int w, int h )
@@ -116,19 +114,42 @@ void ImageViewWidget::paintGL()
 
 	shaderProgram->bind();
 
-	float fov = 90.0f;
-	float tanHalFOV = tanf( ( fov / 2.0f ) * ( 3.141592 / 180 ) );
-	float d = 1 / tanHalFOV;
-
 	float aspect = (float)this->width() / (float)this->height();
 
 	QMatrix4x4 projectionMatrix = {
-		1.0f / aspect, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
+		1, 0.0f, 0.0f, 0.0f,
+		0.0f, 1, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f };
 
-	//	qInfo() << aspect;
+	// TODO: figure this out properly, this feels terrible.
+	int startWidht = 512;
+	int startHeight = 626;
+
+	float scalarX = (float)startWidht / this->width();
+	float scalarY = (float)startHeight / this->height();
+
+	float zoomFactor = 1 / zoom_;
+	if ( zoomFactor > 10 )
+		zoomFactor = 10;
+
+	if ( zoomFactor < 0.00000001 )
+		zoomFactor = 0.00000001;
+
+	float xSpan = zoomFactor;
+	float ySpan = zoomFactor;
+
+	if ( aspect > 1 )
+	{
+		xSpan *= aspect;
+	}
+	else
+	{
+		ySpan = xSpan / aspect;
+	}
+
+	projectionMatrix.ortho( -1 * xSpan, xSpan, -1 * ySpan, ySpan, -0, 1 );
+
 	int AspectRatioLocation = shaderProgram->uniformLocation( "ProjMat" ); // glGetUniformLocation( shaderProgram, "RGBA" );
 	shaderProgram->setUniformValue( AspectRatioLocation, projectionMatrix );
 
@@ -136,22 +157,14 @@ void ImageViewWidget::paintGL()
 
 	shaderProgram->setUniformValue( RGBAProcessing, rgba_ );
 
-	int scalingTransformation = shaderProgram->uniformLocation( "SCALING" );
-
-	QMatrix4x4 scalar = { zoom_, 0.0f, 0.0f, 0.0f,
-						  0.0f, zoom_, 0.0f, 0.0f,
-						  0.0f, 0.0f, zoom_, 0.0f,
-						  0.0f, 0.0f, 0.0f, 1.0f };
-
 	float offs = ( 0.5f / aspect );
-	QVector2D offsets = { remap( xOffset_, 0, 4096, offs * zoom_, -offs * zoom_ ), remap( yOffset_, 0, 4096, -offs * zoom_, offs * zoom_ ) };
-	//	qInfo() << offsets;
+	QVector2D offsets = { remap( xOffset_, 0, 4096, offs * ( zoom_ + ( 1 - scalarX ) ), -offs * ( zoom_ + ( 1 - scalarX ) ) ), remap( yOffset_, 0, 4096, -offs * ( zoom_ + ( 1 - scalarY ) ), offs * ( zoom_ + ( 1 - scalarY ) ) ) };
 
 	int OFFSETProcessing = shaderProgram->uniformLocation( "OFFSET" ); // glGetUniformLocation( shaderProgram, "RGBA" );
 
 	shaderProgram->setUniformValue( OFFSETProcessing, offsets );
 
-	shaderProgram->setUniformValue( scalingTransformation, scalar );
+	// shaderProgram->setUniformValue( scalingTransformation, scalar );
 
 	indexes.bind();
 	vertices.bind();

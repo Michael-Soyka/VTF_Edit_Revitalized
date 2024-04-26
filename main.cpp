@@ -56,14 +56,13 @@ int main( int argc, char **argv )
 
 	Options::setupOptions( *options );
 
-	auto pVTFEdit = new ui::CMainWindow( nullptr );
+	auto pVTFEdit = new ui::CMainWindow();
 	pVTFEdit->processCLIArguments( argc, argv );
 	pVTFEdit->setAttribute( Qt::WA_DeleteOnClose );
 
 	if ( !Options::get<bool>( OPT_START_MAXIMIZED ) )
 	{
 		pVTFEdit->show();
-		qInfo() << pVTFEdit->size();
 	}
 	else
 	{

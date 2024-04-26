@@ -24,12 +24,16 @@ using namespace ui;
 
 #define remap( value, low1, high1, low2, high2 ) ( low2 + ( value - low1 ) * ( high2 - low2 ) / ( high1 - low1 ) )
 
-CMainWindow::CMainWindow( QWidget *pParent ) :
-	QDialog( pParent )
+CMainWindow::CMainWindow() :
+	QMainWindow()
 {
 	this->setWindowTitle( "VTF Edit Revitalized" );
 
-	auto pMainLayout = new QGridLayout( this );
+	QWidget *centralWidget = new QWidget( this );
+
+	auto pMainLayout = new QGridLayout( centralWidget );
+
+	this->setCentralWidget( centralWidget );
 
 	pImageTabWidget = new QTabBar( this );
 
@@ -125,9 +129,9 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	pMainLayout->addWidget( pInfoResourceTabWidget, 0, 2, 2, 1, Qt::AlignRight );
 
-	m_pMainMenuBar = new QMenuBar( this );
+	m_pMainMenuBar = this->menuBar(); // new QMenuBar( this );
 	m_pMainMenuBar->setNativeMenuBar( false );
-	pMainLayout->setMenuBar( m_pMainMenuBar );
+	//	pMainLayout->setMenuBar( m_pMainMenuBar );
 
 	//	connect( this, & )
 	connect( pFileSystemTree, &EntryTree::doubleClicked, pFileSystemTree, [this]( const QModelIndex &parent )
@@ -169,7 +173,7 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	connect( m_pVerticalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, [&]( int val )
 			 {
-				 qInfo() << val;
+				 //				 qInfo() << val;
 				 pImageViewWidget->setYOffset( val );
 				 // qInfo() << m_pVerticalScrollBar->maximum();
 				 //				 if ( m_pVerticalScrollBar->maximum() < 2 )
@@ -221,6 +225,8 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 	//			 } );
 
 	setupMenuBar();
+	setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+	adjustSize();
 }
 
 VTFLib::CVTFFile *CMainWindow::getVTFFromVTFFile( const char *path )
@@ -1218,7 +1224,7 @@ void CMainWindow::resizeEvent( QResizeEvent *r )
 {
 	//	auto pos = scrollWidget->pos();
 	//	pImageViewWidget->move( -r->size().width() - pos.x(), -r->size().height() - pos.y() );
-	QDialog::resizeEvent( r );
+	QMainWindow::resizeEvent( r );
 }
 
 ZoomScrollArea::ZoomScrollArea( QWidget *pParent ) :

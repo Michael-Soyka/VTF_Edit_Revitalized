@@ -189,7 +189,7 @@ private:
 
 	int animationTimer_ = -1;
 
-	bool m_isCTRLHeld;
+	bool m_isCTRLHeld = false;
 
 	int currentFrame_ = 0;
 	int currentFace_ = 0;
@@ -198,4 +198,5 @@ private:
 	void Animate();
 signals:
 	void animated( int frame );
+	void zoomChanged( float zoom );
 };

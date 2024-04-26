@@ -28,6 +28,7 @@ ImageViewWidget::ImageViewWidget( QWidget *pParent ) :
 	QOpenGLWidget( pParent ), QOpenGLFunctions_4_5_Core()
 
 {
+	setFocusPolicy( Qt::StrongFocus );
 	//	setMinimumSize( { 512, 512 } );
 }
 
@@ -93,6 +94,11 @@ void ImageViewWidget::resizeGL( int w, int h )
 {
 	// Update projection matrix and other size related settings:
 	glViewport( 0, 0, w, h );
+	//	glMatrixMode( GL_PROJECTION );
+	//	glOrtho( -aspect, aspect, -1, 1, -1, 1 );
+	//
+	//	glMatrixMode( GL_MODELVIEW );
+	//	glLoadIdentity();
 }
 
 void ImageViewWidget::paintGL()
@@ -111,6 +117,22 @@ void ImageViewWidget::paintGL()
 
 	shaderProgram->bind();
 
+	float fov = 90.0f;
+	float tanHalFOV = tanf( ( fov / 2.0f ) * ( 3.141592 / 180 ) );
+	float d = 1 / tanHalFOV;
+
+	float aspect = (float)this->width() / (float)this->height();
+
+	QMatrix4x4 projectionMatrix = {
+		1.0f / aspect, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f };
+
+	//	qInfo() << aspect;
+	int AspectRatioLocation = shaderProgram->uniformLocation( "ProjMat" ); // glGetUniformLocation( shaderProgram, "RGBA" );
+	shaderProgram->setUniformValue( AspectRatioLocation, projectionMatrix );
+
 	int RGBAProcessing = shaderProgram->uniformLocation( "RGBA" ); // glGetUniformLocation( shaderProgram, "RGBA" );
 
 	shaderProgram->setUniformValue( RGBAProcessing, rgba_ );
@@ -122,7 +144,8 @@ void ImageViewWidget::paintGL()
 						  0.0f, 0.0f, zoom_, 0.0f,
 						  0.0f, 0.0f, 0.0f, 1.0f };
 
-	QVector2D offsets = { remap( xOffset_, 0, 4096, 0.5f * zoom_, -0.5f * zoom_ ), remap( yOffset_, 0, 4096, -0.5f * zoom_, 0.5f * zoom_ ) };
+	float offs = ( 0.5f / aspect );
+	QVector2D offsets = { remap( xOffset_, 0, 4096, offs * zoom_, -offs * zoom_ ), remap( yOffset_, 0, 4096, -offs * zoom_, offs * zoom_ ) };
 	//	qInfo() << offsets;
 
 	int OFFSETProcessing = shaderProgram->uniformLocation( "OFFSET" ); // glGetUniformLocation( shaderProgram, "RGBA" );
@@ -304,11 +327,13 @@ bool ImageViewWidget::event( QEvent *event )
 
 void ImageViewWidget::zoom( float amount )
 {
-	if ( amount == 0 )
+	if ( amount == 0 || !file_ )
 		return; // Skip expensive repaint
 	zoom_ += amount;
 	if ( zoom_ < 0.01f )
 		zoom_ = 0.01f;
+
+	emit zoomChanged( zoom_ );
 
 	update_size();
 }

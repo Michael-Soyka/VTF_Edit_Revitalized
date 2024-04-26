@@ -22,6 +22,8 @@
 
 using namespace ui;
 
+#define remap( value, low1, high1, low2, high2 ) ( low2 + ( value - low1 ) * ( high2 - low2 ) / ( high1 - low1 ) )
+
 CMainWindow::CMainWindow( QWidget *pParent ) :
 	QDialog( pParent )
 {
@@ -36,34 +38,39 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	pMainLayout->addWidget( pImageTabWidget, 0, 1, Qt::AlignTop );
 
-	//	scrollWidget = new ZoomScrollArea( this );
-
-	//	pImageViewWidget->setMinimumSize( 512, 512 );
-	//	pImageViewWidget->setSizePolicy( QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum );
 	m_pScrollWidget = new QWidget( this );
-	m_pScrollWidget->setMinimumSize( 600, 600 );
-	this->resize( 512, 512 );
+	m_pScrollWidget->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 	auto scrollLayout = new QGridLayout( m_pScrollWidget );
 
 	pImageViewWidget = new ImageViewWidget( m_pScrollWidget );
 
-	scrollLayout->addWidget( pImageViewWidget, 0, 0 );
+	scrollLayout->addWidget( pImageViewWidget, 0, 0, 2, 1 );
 
 	m_pHorizontalScrollBar = new QScrollBar( Qt::Horizontal, m_pScrollWidget );
 	m_pHorizontalScrollBar->setMinimum( 0 );
 	m_pHorizontalScrollBar->setMaximum( 4096 );
 	m_pHorizontalScrollBar->setValue( 4096 / 2 );
+	//	m_pHorizontalScrollBar->setSingleStep( 100 );
+	m_pHorizontalScrollBar->setPageStep( 4096 * 4096 );
+	m_pHorizontalScrollBar->setMinimumWidth( 512 );
+	m_pHorizontalScrollBar->setMinimumHeight( 16 );
+	m_pHorizontalScrollBar->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+
 	pImageViewWidget->setXOffset( 4096 / 2 );
 	pImageViewWidget->setYOffset( 4096 / 2 );
 
-	scrollLayout->addWidget( m_pHorizontalScrollBar, 1, 0 );
+	scrollLayout->addWidget( m_pHorizontalScrollBar, 1, 0, Qt::AlignBottom );
 
 	m_pVerticalScrollBar = new QScrollBar( Qt::Vertical, m_pScrollWidget );
 	m_pVerticalScrollBar->setMinimum( 0 );
 	m_pVerticalScrollBar->setMaximum( 4096 );
 	m_pVerticalScrollBar->setValue( 4096 / 2 );
+	m_pVerticalScrollBar->setPageStep( 4096 * 4096 );
+	m_pVerticalScrollBar->setMinimumHeight( 512 );
+	m_pVerticalScrollBar->setMinimumWidth( 16 );
+	m_pVerticalScrollBar->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
-	scrollLayout->addWidget( m_pVerticalScrollBar, 0, 1 );
+	scrollLayout->addWidget( m_pVerticalScrollBar, 0, 1, Qt::AlignRight );
 
 	pMainLayout->addWidget( m_pScrollWidget, 1, 1 );
 	//	scrollWidget->setWidget( pImageViewWidget );
@@ -148,9 +155,31 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 				 }
 			 } );
 
-	connect( m_pHorizontalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setXOffset );
+	connect( m_pHorizontalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, [&]( int val )
+			 {
+				 pImageViewWidget->setXOffset( val );
+				 //				 qInfo() << m_pHorizontalScrollBar->maximum();
+				 //				 if ( m_pHorizontalScrollBar->maximum() < 2 )
+				 //				 {
+				 //					 pImageViewWidget->setXOffset( 4096 / 2 );
+				 //					 return;
+				 //				 }
+				 //				 pImageViewWidget->setXOffset( remap( val, m_pHorizontalScrollBar->minimum(), m_pHorizontalScrollBar->maximum(), 0, 4096 ) );
+			 } );
 
-	connect( m_pVerticalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, &ImageViewWidget::setYOffset );
+	connect( m_pVerticalScrollBar, &QScrollBar::valueChanged, pImageViewWidget, [&]( int val )
+			 {
+				 qInfo() << val;
+				 pImageViewWidget->setYOffset( val );
+				 // qInfo() << m_pVerticalScrollBar->maximum();
+				 //				 if ( m_pVerticalScrollBar->maximum() < 2 )
+				 //				 {
+				 //					 pImageViewWidget->setYOffset( 4096 / 2 );
+				 //					 return;
+				 //				 }
+				 //
+				 //				 pImageViewWidget->setYOffset( remap( val, m_pVerticalScrollBar->minimum(), m_pVerticalScrollBar->maximum(), 0, 4096 ) );
+			 } );
 
 	connect( pImageTabWidget, &QTabBar::tabCloseRequested, this, &CMainWindow::removeVTFTab );
 
@@ -158,6 +187,25 @@ CMainWindow::CMainWindow( QWidget *pParent ) :
 
 	connect( pImageViewWidget, &ImageViewWidget::animated, pImageSettingsWidget, &ImageSettingsWidget::set_frame );
 
+	connect( pImageViewWidget, &ImageViewWidget::zoomChanged, this, [&]( float zoom )
+			 {
+				 //				 qInfo() << zoom;
+				 //				 qInfo() << ( 4096 * 10 ) / zoom;
+				 m_pHorizontalScrollBar->setPageStep( ( 4096 * 4 ) / zoom );
+				 m_pVerticalScrollBar->setPageStep( ( 4096 * 4 ) / zoom );
+				 //				 float value remap( 1, zoom, 0, 0, 100 );
+				 //				 if ( zoom < 1 )
+				 //					 value = 0;
+				 //				 qInfo() << zoom;
+				 //				 qInfo() << value;
+				 //				 m_pHorizontalScrollBar->setPageStep( value * 100 );
+				 //				 m_pHorizontalScrollBar->setMaximum( value );
+				 //				 m_pHorizontalScrollBar->setValue( value / 2 );
+				 //
+				 //				 m_pVerticalScrollBar->setPageStep( value * 100 );
+				 //				 m_pVerticalScrollBar->setMaximum( value );
+				 //				 m_pVerticalScrollBar->setValue( value / 2 );
+			 } );
 	//	connect( scrollWidget, &ZoomScrollArea::onScrollUp, this, [&, areaSize]
 	//			 {
 	//				 pImageViewWidget->zoom( 0.05 );

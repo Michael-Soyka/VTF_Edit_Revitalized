@@ -14,6 +14,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
@@ -28,6 +29,8 @@ CMainWindow::CMainWindow() :
 	QMainWindow()
 {
 	this->setWindowTitle( "VTF Edit Revitalized" );
+
+	setAcceptDrops( true );
 
 	QWidget *centralWidget = new QWidget( this );
 
@@ -795,12 +798,7 @@ void CMainWindow::foldersToVTF()
 	std::map<QString, VTFFolder> folders;
 	VTFFolder *current;
 	QStringList list;
-	list << "*.bmp"
-		 << "*.gif"
-		 << "*.jpg"
-		 << "*.jpeg"
-		 << "*.png"
-		 << "*.tga"
+	list << supportedWildcardImageList
 		 << ".animation.txt";
 
 	QDirIterator it( importFrom, list, QDir::Files | QDir::Hidden, QDirIterator::Subdirectories );
@@ -915,7 +913,7 @@ void CMainWindow::importFromFile()
 	auto recentPaths = Options::get<QStringList>( STR_OPEN_RECENT );
 
 	QStringList filePaths = QFileDialog::getOpenFileNames(
-		this, "Open", recentPaths.last(), "*.bmp *.gif *.tif *.tiff *.jpg *.jpeg *.png *.tga *.hdr *.vtf", nullptr,
+		this, "Open", recentPaths.last(), supportedWildcardImageList.join( " " ) + " *.vtf", nullptr,
 		QFileDialog::Option::DontUseNativeDialog );
 
 	if ( filePaths.isEmpty() )
@@ -1159,7 +1157,7 @@ void CMainWindow::exportVTFToFile()
 
 	QString filePath = QFileDialog::getSaveFileName(
 		this, fImageAmount > 1 ? "Export to *" : "Export to _x*",
-		recentPaths.last(), "*.bmp *.gif *.jpg *.jpeg *.png *.tga", nullptr,
+		recentPaths.last(), supportedWildcardImageList.join( " " ), nullptr,
 		QFileDialog::Option::DontUseNativeDialog );
 
 	if ( filePath.isEmpty() )
@@ -1230,20 +1228,82 @@ void CMainWindow::saveVTFToFile()
 	pVTF->Save( filePath.toUtf8().constData() );
 }
 
-void CMainWindow::processCLIArguments( const int &argCount, char **pString )
-{
-	for ( int i = 0; i < argCount; i++ )
-	{
-		QString filePath = QString( pString[i] );
-		if ( filePath.endsWith( ".vtf" ) )
-			addVTFFromPathToTab( filePath );
-	}
-}
 void CMainWindow::resizeEvent( QResizeEvent *r )
 {
 	//	auto pos = scrollWidget->pos();
 	//	pImageViewWidget->move( -r->size().width() - pos.x(), -r->size().height() - pos.y() );
 	QMainWindow::resizeEvent( r );
+}
+void CMainWindow::dragEnterEvent( QDragEnterEvent *event )
+{
+	QStringList extendedSupportedImageList = supportedImageList;
+	extendedSupportedImageList << "ttf"
+							   << "otf"
+							   << "vtf";
+	if ( event->mimeData()->hasUrls() )
+	{
+		for ( const auto &url : event->mimeData()->urls() )
+		{
+			qInfo() << QFileInfo( url.toLocalFile() ).suffix();
+			if ( !extendedSupportedImageList.contains( QFileInfo( url.toLocalFile() ).suffix() ) )
+				return;
+		}
+		event->acceptProposedAction();
+	}
+}
+
+void CMainWindow::dropEvent( QDropEvent *event )
+{
+	foreach( const QUrl &url, event->mimeData()->urls() )
+	{
+		this->addFile( url.toLocalFile() );
+	}
+}
+
+void CMainWindow::consoleParameters( int argc, char **argv )
+{
+	QStringList extendedSupportedImageList = supportedImageList;
+	extendedSupportedImageList << "ttf"
+							   << "otf"
+							   << "vtf";
+
+	for ( int i = 1; i < argc; i++ )
+	{
+		if ( !extendedSupportedImageList.contains( QFileInfo( argv[i] ).suffix() ) )
+			continue;
+
+		this->addFile( argv[i] );
+	}
+}
+
+void CMainWindow::addFile( QString filePath )
+{
+	QString suffix = QFileInfo( filePath ).suffix();
+
+	auto recentPaths = Options::get<QStringList>( STR_OPEN_RECENT );
+
+	if ( recentPaths.contains( filePath ) )
+		recentPaths.removeAt( recentPaths.indexOf( filePath ) );
+	recentPaths.push_back( filePath );
+	Options::set( STR_OPEN_RECENT, recentPaths );
+
+	if ( suffix == "vtf" )
+	{
+		addVTFFromPathToTab( filePath );
+		return;
+	}
+
+	if ( supportedImageList.contains( suffix ) )
+	{
+		generateVTFFromImage( filePath );
+		return;
+	}
+
+	if ( suffix == "ttf" || suffix == "otf" )
+	{
+		generateVTFFromFont( filePath );
+		return;
+	}
 }
 
 ZoomScrollArea::ZoomScrollArea( QWidget *pParent ) :

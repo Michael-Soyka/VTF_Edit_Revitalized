@@ -123,8 +123,8 @@ void ImageViewWidget::paintGL()
 		0.0f, 0.0f, 0.0f, 1.0f };
 
 	// TODO: figure this out properly, this feels terrible.
-	int startWidht = 512;
-	int startHeight = 626;
+	int startWidht = this->width();
+	int startHeight = this->height();
 
 	float scalarX = (float)startWidht / this->width();
 	float scalarY = (float)startHeight / this->height();
@@ -182,7 +182,7 @@ void ImageViewWidget::paintGL()
 	{
 		GLuint width, height, whatever;
 		CVTFFile::ComputeMipmapDimensions( file_->GetWidth(), file_->GetHeight(), 1, mip_, width, height, whatever );
-		auto size = CVTFFile::ComputeImageSize( width, width, whatever, IMAGE_FORMAT_RGBA8888 );
+		auto size = CVTFFile::ComputeImageSize( width, height, whatever, IMAGE_FORMAT_RGBA8888 );
 		auto imgData = new vlByte[size];
 		CVTFFile::ConvertToRGBA8888( file_->GetData( frame_, face_, 0, mip_ ), reinterpret_cast<vlByte *>( imgData ), width, height, file_->GetFormat() );
 

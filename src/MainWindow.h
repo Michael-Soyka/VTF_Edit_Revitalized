@@ -22,6 +22,9 @@ namespace ui
 	{
 		Q_OBJECT
 
+		const QStringList supportedWildcardImageList = { "*.bmp", "*.gif", "*.tga", "*.png", "*.jpg", "*.jpeg", "*.tif", "*.tiff" };
+		const QStringList supportedImageList = { "bmp", "gif", "tga", "png", "jpg", "jpeg", "tif", "tiff" };
+
 		QHash<intptr_t, VTFLib::CVTFFile *> vtfWidgetList;
 
 	public:
@@ -56,7 +59,6 @@ namespace ui
 		void exportVTFToFile();
 		void saveVTFToFile();
 		void compressVTFFile();
-		void processCLIArguments( const int &argCount, char **pString );
 		static QAction *createCheckableAction( const QString &name, QObject *parent );
 		QAction *redBox;
 		QAction *greenBox;
@@ -68,6 +70,10 @@ namespace ui
 		void fontToVTF();
 
 		void resizeEvent( QResizeEvent * ) override;
+		void dragEnterEvent( QDragEnterEvent *event ) override;
+		void dropEvent( QDropEvent *event ) override;
+		void addFile( QString filePath );
+		void consoleParameters( int argc, char **argv );
 	};
 
 	class ZoomScrollArea : public QAbstractScrollArea

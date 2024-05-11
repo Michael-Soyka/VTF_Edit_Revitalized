@@ -4,9 +4,8 @@
 
 #include <QApplication>
 #include <QCommonStyle>
-#include <QDebug>
 #include <QDir>
-#include <QIcon>
+// #include <QSharedMemory>
 #include <QStyleFactory>
 
 using namespace ui;
@@ -14,6 +13,16 @@ using namespace ui;
 int main( int argc, char **argv )
 {
 	QApplication app( argc, argv );
+
+	//	QSharedMemory mem = QSharedMemory( "VTFER_QT_SHAREMEM_INSTANCE", &app );
+	//
+	//	if ( mem.isAttached() )
+	//	{
+	//		ui::CMainWindow *otherApp = reinterpret_cast<ui::CMainWindow *>( mem.data() );
+	//		otherApp->consoleParameters( argc, argv );
+	//		QApplication::exit( 0 );
+	//		return 0;
+	//	}
 
 	QCommonStyle *style = (QCommonStyle *)QStyleFactory::create( "fusion" );
 	QApplication::setStyle( style );
@@ -57,8 +66,14 @@ int main( int argc, char **argv )
 	Options::setupOptions( *options );
 
 	auto pVTFEdit = new ui::CMainWindow();
-	pVTFEdit->processCLIArguments( argc, argv );
+	pVTFEdit->consoleParameters( argc, argv );
 	pVTFEdit->setAttribute( Qt::WA_DeleteOnClose );
+
+	//	mem.create( sizeof( pVTFEdit ) );
+	//	mem.lock();
+	//	void *to = (void *)mem.data();
+	//	memcpy( to, pVTFEdit, sizeof( ui::CMainWindow * ) );
+	//	mem.unlock();
 
 	if ( !Options::get<bool>( OPT_START_MAXIMIZED ) )
 	{

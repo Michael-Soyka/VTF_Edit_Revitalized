@@ -66,6 +66,7 @@ public:
 
 class AdvancedTab : public QDialog
 {
+	Q_OBJECT
 	friend class VTFEImport;
 	QGridLayout *pMainLayout;
 	void VersionMenu();
@@ -121,6 +122,7 @@ public:
 
 class ResourceTab : public QDialog
 {
+	Q_OBJECT
 	friend class VTFEImport;
 	QGridLayout *pMainLayout;
 	void LODControlResource();
@@ -144,6 +146,7 @@ public:
 
 class VTFEImport : public QDialog
 {
+	Q_OBJECT
 	friend class GeneralTab;
 	friend class AdvancedTab;
 	friend class ResourceTab;

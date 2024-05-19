@@ -22,6 +22,8 @@ class VTFEImport;
 
 class GeneralTab : public QDialog
 {
+	Q_OBJECT
+
 	friend class VTFEImport;
 	QGridLayout *pMainLayout;
 	void GeneralOptions();

@@ -436,6 +436,10 @@ void CMainWindow::compressVTFFile()
 
 	vBLayout->addWidget( pSelectDestinationLocation, 4, 1 );
 
+	auto pRecomputeReflectivity = new QCheckBox( "Recompute Reflectivity", pCompressionDialog );
+
+	vBLayout->addWidget( pRecomputeReflectivity, 5, 0, 1, 2 );
+
 	auto pButtonLayout = new QHBoxLayout();
 
 	auto pOkButton = new QPushButton( "Update Version", pCompressionDialog );
@@ -444,7 +448,7 @@ void CMainWindow::compressVTFFile()
 	auto pCancelButton = new QPushButton( "Cancel", pCompressionDialog );
 	pButtonLayout->addWidget( pCancelButton, Qt::AlignCenter );
 
-	vBLayout->addLayout( pButtonLayout, 5, 0, 1, 2 );
+	vBLayout->addLayout( pButtonLayout, 6, 0, 1, 2 );
 
 	bool compress = false;
 
@@ -533,6 +537,11 @@ void CMainWindow::compressVTFFile()
 		}
 #endif
 
+		if ( pRecomputeReflectivity->isChecked() )
+		{
+			pVTF->ComputeReflectivity();
+		}
+
 		if ( pathDirectory.isEmpty() )
 			pVTF->Save( filePath.toUtf8().constData() );
 		else
@@ -616,6 +625,10 @@ void CMainWindow::compressVTFFolder()
 
 	vBLayout->addWidget( pSelectDestinationLocation, 4, 1 );
 
+	auto pRecomputeReflectivity = new QCheckBox( "Recompute Reflectivity", pCompressionDialog );
+
+	vBLayout->addWidget( pRecomputeReflectivity, 5, 0, 1, 2 );
+
 	auto pButtonLayout = new QHBoxLayout();
 
 	auto pOkButton = new QPushButton( "Update Version", pCompressionDialog );
@@ -624,7 +637,7 @@ void CMainWindow::compressVTFFolder()
 	auto pCancelButton = new QPushButton( "Cancel", pCompressionDialog );
 	pButtonLayout->addWidget( pCancelButton, Qt::AlignCenter );
 
-	vBLayout->addLayout( pButtonLayout, 5, 0, 1, 2 );
+	vBLayout->addLayout( pButtonLayout, 6, 0, 1, 2 );
 
 	bool compress = false;
 
@@ -736,6 +749,12 @@ void CMainWindow::compressVTFFolder()
 			pVTF->SetAuxCompressionLevel( pAuxCompressionLevelBox->currentData().toInt() );
 		}
 #endif
+
+		if ( pRecomputeReflectivity->isChecked() )
+		{
+			pVTF->ComputeReflectivity();
+		}
+
 		if ( pathDirectory.isEmpty() )
 		{
 			if ( !pVTF->Save( path.toUtf8().constData() ) )

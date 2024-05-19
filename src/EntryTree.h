@@ -6,6 +6,7 @@
 #include <QTreeWidget>
 class EntryTree : public QTreeView
 {
+	Q_OBJECT
 public:
 	EntryTree( QWidget *pParent );
 };

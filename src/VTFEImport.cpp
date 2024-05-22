@@ -916,10 +916,15 @@ void GeneralTab::GeneralMipMaps()
 void GeneralTab::GeneralCustomMipmaps()
 {
 	vBoxCustomMipMaps = new QGroupBox( tr( "Custom mipmaps" ), this );
+
 	auto vBLayout = new QGridLayout( vBoxCustomMipMaps );
 
-	auto pScrollArea = new QScrollArea( vBoxCustomMipMaps );
-	auto pMipMapDialogLayout = new QVBoxLayout();
+	auto pMipMapScrollArea = new QScrollArea( vBoxCustomMipMaps );
+	pMipMapScrollArea->setWidgetResizable( true );
+
+	auto pMipMapScrollAreaContent = new QWidget();
+
+	auto pMipMapDialogLayout = new QVBoxLayout( pMipMapScrollAreaContent );
 
 	auto parent = dynamic_cast<VTFEImport *>( this->parent() );
 
@@ -932,12 +937,13 @@ void GeneralTab::GeneralCustomMipmaps()
 			vlUInt uiMipWidth, uiMipHeight, uiMipDepth;
 			VTFLib::CVTFFile::ComputeMipmapDimensions( parent->imageList[0]->getWidth(), parent->imageList[0]->getHeight(), 1, i, uiMipWidth, uiMipHeight, uiMipDepth );
 			auto mipMapButton = new QPushButton( QApplication::style()->standardIcon( QStyle::SP_FileIcon ), QString::number( uiMipWidth ) + " X " + QString::number( uiMipHeight ) );
+			mipMapButton->setMinimumHeight( 24 );
 
 			connect( mipMapButton, &QPushButton::clicked, this, []() {
 
 			} );
 
-			pMipMapDialogLayout->addWidget( mipMapButton, Qt::AlignRight );
+			pMipMapDialogLayout->addWidget( mipMapButton );
 		}
 	}
 	else
@@ -945,18 +951,19 @@ void GeneralTab::GeneralCustomMipmaps()
 		vBoxCustomMipMaps->setDisabled( true );
 	}
 
-	auto pFrameBox = new QSpinBox( pScrollArea );
+	auto pFrameBox = new QSpinBox( pMipMapScrollArea );
 	pFrameBox->setPrefix( "Frame: " );
 	vBLayout->addWidget( pFrameBox, 0, 0 );
-	auto pFaceBox = new QSpinBox( pScrollArea );
+	auto pFaceBox = new QSpinBox( pMipMapScrollArea );
 	pFaceBox->setPrefix( "Face: " );
 	vBLayout->addWidget( pFaceBox, 0, 1 );
-	auto pSliceBox = new QSpinBox( pScrollArea );
+	auto pSliceBox = new QSpinBox( pMipMapScrollArea );
 	pSliceBox->setPrefix( "Slice: " );
 	vBLayout->addWidget( pSliceBox, 0, 2 );
 
-	pScrollArea->setLayout( pMipMapDialogLayout );
-	vBLayout->addWidget( pScrollArea, 1, 0, 1, 3 );
+	pMipMapScrollArea->setWidget( pMipMapScrollAreaContent );
+
+	vBLayout->addWidget( pMipMapScrollArea, 1, 0, 1, 3 );
 
 	pMainLayout->addWidget( vBoxCustomMipMaps, 1, 1 );
 }

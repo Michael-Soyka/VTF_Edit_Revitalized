@@ -522,11 +522,11 @@ void VTFEImport::InitializeWidgets()
 
 			auto pMainMenuBar = new QMenuBar( dialog );
 
-			auto pViewMenu = pMainMenuBar->addMenu( "View" );
-			auto redBox = ui::CMainWindow::createCheckableAction( "Red", pViewMenu );
-			auto greenBox = ui::CMainWindow::createCheckableAction( "Green", pViewMenu );
-			auto blueBox = ui::CMainWindow::createCheckableAction( "Blue", pViewMenu );
-			auto alphaBox = ui::CMainWindow::createCheckableAction( "Alpha", pViewMenu );
+			auto pViewMenu = pMainMenuBar->addMenu( tr( "View" ) );
+			auto redBox = ui::CMainWindow::createCheckableAction( tr( "Red" ), pViewMenu );
+			auto greenBox = ui::CMainWindow::createCheckableAction( tr( "Green" ), pViewMenu );
+			auto blueBox = ui::CMainWindow::createCheckableAction( tr( "Blue" ), pViewMenu );
+			auto alphaBox = ui::CMainWindow::createCheckableAction( tr( "Alpha" ), pViewMenu );
 
 			connect( redBox, &QAction::triggered, dialog, [vIVW]( bool checked )
 					 {
@@ -746,7 +746,7 @@ void GeneralTab::GeneralOptions()
 
 	vBLayout->addWidget( label2, 2, 0, Qt::AlignLeft );
 	vBLayout->addWidget( pTypeCombo, 2, 1, Qt::AlignRight );
-	pSRGBCheckbox = new QCheckBox( "sRGB Color Space", this );
+	pSRGBCheckbox = new QCheckBox( tr( "sRGB Color Space" ), this );
 	vBLayout->addWidget( pSRGBCheckbox, 3, 0, 1, 2, Qt::AlignLeft );
 	pMainLayout->addWidget( vBoxGeneralOptions, 0, 0 );
 }
@@ -771,7 +771,7 @@ void GeneralTab::GeneralResize()
 	{
 		pResizeCheckbox->setChecked( true );
 		pResizeCheckbox->setDisabled( true );
-		pResizeCheckbox->setToolTip( "Rescaling WILL be done to non power of two images This is a quirk of folder conversion." );
+		pResizeCheckbox->setToolTip( tr( "Rescaling WILL be done to non power of two images This is a quirk of folder conversion." ) );
 		auto pal = pResizeCheckbox->palette();
 		pal.setColor( QPalette::WindowText, Qt::red );
 		pResizeCheckbox->setPalette( pal );

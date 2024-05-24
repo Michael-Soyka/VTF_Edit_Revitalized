@@ -16,8 +16,14 @@ ImageSettingsWidget::ImageSettingsWidget( ImageViewWidget *viewer, QWidget *pare
 
 void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 {
-	auto *layout = new QGridLayout( this );
+	auto *layout = new QVBoxLayout( this );
+	auto *ImageGeneralSettingsGroupBox = new QGroupBox( tr( "General" ), this );
+	auto *ImageFlagsGroupBox = new QGroupBox( tr( "Flags" ), this );
 
+	auto *GeneralSettingsLayout = new QGridLayout( ImageGeneralSettingsGroupBox );
+	auto *FlagsLayout = new QGridLayout( ImageFlagsGroupBox );
+
+	// General Settings
 	int row = 0;
 	frame_ = new QSpinBox( this );
 	connect(
@@ -26,8 +32,8 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 		{
 			viewer->set_frame( frame_->value() );
 		} );
-	layout->addWidget( frame_, row, 1 );
-	layout->addWidget( new QLabel( "Frame:" ), row, 0 );
+	GeneralSettingsLayout->addWidget( frame_, row, 1 );
+	GeneralSettingsLayout->addWidget( new QLabel( tr( "Frame:" ) ), row, 0 );
 
 	++row;
 	mip_ = new QSpinBox( this );
@@ -37,8 +43,8 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 		{
 			viewer->set_mip( mip_->value() );
 		} );
-	layout->addWidget( mip_, row, 1 );
-	layout->addWidget( new QLabel( "Mip:" ), row, 0 );
+	GeneralSettingsLayout->addWidget( mip_, row, 1 );
+	GeneralSettingsLayout->addWidget( new QLabel( tr( "Mip:" ) ), row, 0 );
 
 	++row;
 	face_ = new QSpinBox( this );
@@ -48,8 +54,8 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 		{
 			viewer->set_face( face_->value() );
 		} );
-	layout->addWidget( face_, row, 1 );
-	layout->addWidget( new QLabel( "Face:" ), row, 0 );
+	GeneralSettingsLayout->addWidget( face_, row, 1 );
+	GeneralSettingsLayout->addWidget( new QLabel( tr( "Face:" ) ), row, 0 );
 
 	++row;
 	startFrame_ = new QSpinBox( this );
@@ -63,18 +69,18 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 			if ( !settingFile_ )
 				emit fileModified();
 		} );
-	layout->addWidget( startFrame_, row, 1 );
-	layout->addWidget( new QLabel( "Start Frame:" ), row, 0 );
+	GeneralSettingsLayout->addWidget( startFrame_, row, 1 );
+	GeneralSettingsLayout->addWidget( new QLabel( tr( "Start Frame:" ) ), row, 0 );
 	++row;
 	QSpinBox *frameBox = new QSpinBox( this );
 	frameBox->setMinimum( 1 );
 	frameBox->setValue( 24 );
 	frameBox->setMaximum( 144 ); // I don't think you can even run Source even supports 144
-	layout->addWidget( frameBox, row, 1 );
-	layout->addWidget( new QLabel( "Animation FPS:" ), row, 0 );
+	GeneralSettingsLayout->addWidget( frameBox, row, 1 );
+	GeneralSettingsLayout->addWidget( new QLabel( tr( "Animation FPS:" ) ), row, 0 );
 	++row;
 
-	animateButton = new QPushButton( "Animate", this );
+	animateButton = new QPushButton( tr( "Animate" ), this );
 
 	connect( animateButton, &QPushButton::pressed, this, [&, viewer, frameBox]
 			 {
@@ -84,25 +90,25 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 				 if ( file_->GetFrameCount() <= 1 )
 					 return; // Do not animate when we do not have frames to animate, lol.
 
-				 if ( animateButton->text() == "Animate" )
+				 if ( animateButton->text() == tr( "Animate" ) )
 				 {
 					 viewer->startAnimation( frameBox->value() );
-					 animateButton->setText( "Stop" );
+					 animateButton->setText( tr( "Stop" ) );
 				 }
 				 else
 				 {
 					 viewer->stopAnimating();
-					 animateButton->setText( "Animate" );
+					 animateButton->setText( tr( "Animate" ) );
 				 }
 			 } );
 
-	layout->addWidget( animateButton, row, 1 );
+	GeneralSettingsLayout->addWidget( animateButton, row, 1 );
 
 	// Flags list box
 	++row;
 	auto *flagsScroll = new QScrollArea( this );
-	auto *flagsGroup = new QGroupBox( tr( "Flags" ), this );
-	auto *flagsLayout = new QGridLayout( flagsGroup );
+	auto *flagsContent = new QWidget();
+	auto *flagsLayout = new QGridLayout( flagsContent );
 
 	for ( auto &flag : TEXTURE_FLAGS )
 	{
@@ -114,7 +120,7 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 			{
 				if ( !file_ )
 					return;
-				file_->SetFlag( (VTFImageFlag)flag.flag, newState );
+				file_->SetFlag( ( VTFImageFlag )flag.flag, newState );
 				if ( !settingFile_ )
 					emit fileModified();
 			} );
@@ -122,8 +128,11 @@ void ImageSettingsWidget::setup_ui( ImageViewWidget *viewer )
 		flagsLayout->addWidget( check );
 	}
 
-	flagsScroll->setWidget( flagsGroup );
-	layout->addWidget( flagsScroll, row, 0, 1, 2 );
+	flagsScroll->setWidget( flagsContent );
+	FlagsLayout->addWidget( flagsScroll, row, 0, 1, 2 );
+
+	layout->addWidget( ImageGeneralSettingsGroupBox );
+	layout->addWidget( ImageFlagsGroupBox );
 }
 
 void ImageSettingsWidget::set_vtf( VTFLib::CVTFFile *file )
@@ -149,7 +158,7 @@ void ImageSettingsWidget::set_vtf( VTFLib::CVTFFile *file )
 		}
 		settingFile_ = false;
 		file_ = nullptr;
-		animateButton->setText( "Animate" );
+		animateButton->setText( tr( "Animate" ) );
 		return;
 	}
 
@@ -165,7 +174,7 @@ void ImageSettingsWidget::set_vtf( VTFLib::CVTFFile *file )
 	face_->setRange( 1, file->GetFaceCount() );
 	startFrame_->setRange( 1, file->GetFrameCount() );
 
-	animateButton->setText( "Animate" ); // Tab switching stops animation, this reflects that.
+	animateButton->setText( tr( "Animate" ) ); // Tab switching stops animation, this reflects that.
 
 	// Set the flags
 	uint32_t flags = file->GetFlags();

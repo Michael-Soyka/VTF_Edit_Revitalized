@@ -316,23 +316,25 @@ void CMainWindow::tabChanged( int index )
 
 void CMainWindow::setupMenuBar()
 {
-	auto pFileMenuTab = m_pMainMenuBar->addMenu( "File" );
-	pFileMenuTab->addAction( "Open", this, &CMainWindow::openVTF );
-	pFileMenuTab->addAction( "Save", this, &CMainWindow::saveVTFToFile );
-	pFileMenuTab->addAction( "Export", this, &CMainWindow::exportVTFToFile );
-	pFileMenuTab->addAction( "Import...", this, &CMainWindow::importFromFile );
+	auto pFileMenuTab = m_pMainMenuBar->addMenu( tr( "File" ) );
+	pFileMenuTab->addAction( tr( "Open" ), this, &CMainWindow::openVTF );
+	pFileMenuTab->addAction( tr( "Save" ), this, &CMainWindow::saveVTFToFile );
+	pFileMenuTab->addAction( tr( "Export" ), this, &CMainWindow::exportVTFToFile );
+	pFileMenuTab->addAction( tr( "Import..." ), this, &CMainWindow::importFromFile );
+	pFileMenuTab->addSeparator();
+	pFileMenuTab->addAction( tr( "Exit" ), this, &CMainWindow::exitVTFE );
 
-	auto pToolMenuTab = m_pMainMenuBar->addMenu( "Tools" );
-	pToolMenuTab->addAction( "VTF Version Editor (Individual)", this, &CMainWindow::compressVTFFile );
-	pToolMenuTab->addAction( "VTF Version Editor (Batch)", this, &CMainWindow::compressVTFFolder );
-	pToolMenuTab->addAction( "Folders to VTF", this, &CMainWindow::foldersToVTF );
-	pToolMenuTab->addAction( "FontToVTF", this, &CMainWindow::fontToVTF );
+	auto pToolMenuTab = m_pMainMenuBar->addMenu( tr( "Tools" ) );
+	pToolMenuTab->addAction( tr( "VTF Version Editor (Individual)" ), this, &CMainWindow::compressVTFFile );
+	pToolMenuTab->addAction( tr( "VTF Version Editor (Batch)" ), this, &CMainWindow::compressVTFFolder );
+	pToolMenuTab->addAction( tr( "Folders to VTF" ), this, &CMainWindow::foldersToVTF );
+	pToolMenuTab->addAction( tr( "FontToVTF" ), this, &CMainWindow::fontToVTF );
 
-	auto pViewMenu = m_pMainMenuBar->addMenu( "View" );
-	redBox = createCheckableAction( "Red", pViewMenu );
-	greenBox = createCheckableAction( "Green", pViewMenu );
-	blueBox = createCheckableAction( "Blue", pViewMenu );
-	alphaBox = createCheckableAction( "Alpha", pViewMenu );
+	auto pViewMenu = m_pMainMenuBar->addMenu( tr( "View" ) );
+	redBox = createCheckableAction( tr( "Red" ), pViewMenu );
+	greenBox = createCheckableAction( tr( "Green" ), pViewMenu );
+	blueBox = createCheckableAction( tr( "Blue" ), pViewMenu );
+	alphaBox = createCheckableAction( tr( "Alpha" ), pViewMenu );
 	connect( redBox, &QAction::triggered, [this]( bool checked )
 			 {
 				 pImageViewWidget->set_red( checked );
@@ -1245,6 +1247,11 @@ void CMainWindow::saveVTFToFile()
 		filePath.append( ".vtf" );
 
 	pVTF->Save( filePath.toUtf8().constData() );
+}
+
+void CMainWindow::exitVTFE()
+{
+	QApplication::quit();
 }
 
 void CMainWindow::resizeEvent( QResizeEvent *r )

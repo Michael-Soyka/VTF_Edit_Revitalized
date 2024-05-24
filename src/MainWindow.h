@@ -59,6 +59,7 @@ namespace ui
 		void exportVTFToFile();
 		void saveVTFToFile();
 		void compressVTFFile();
+		static void exitVTFE();
 		static QAction *createCheckableAction( const QString &name, QObject *parent );
 		QAction *redBox;
 		QAction *greenBox;

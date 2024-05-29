@@ -604,9 +604,9 @@ VTFEImport *VTFEImport::FromVTF( QWidget *pParent, VTFLib::CVTFFile *pFile )
 
 	for ( int i = 0; i < fImageAmount; i++ )
 	{
-		vlUInt frames = type == 0 ? i + 1 : 1;
-		vlUInt faces = type == 1 ? i + 1 : 1;
-		vlUInt slices = type == 2 ? i + 1 : 1;
+		vlUInt frames = type == 0 ? i : 0;
+		vlUInt faces = type == 1 ? i : 0;
+		vlUInt slices = type == 2 ? i : 0;
 
 		vVTFImport->imageList[vVTFImport->imageList.size()] =
 			new VTFEImageFormat( pFile->GetData( frames, faces, slices, 0 ), pFile->GetWidth(), pFile->GetHeight(), pFile->GetDepth(), pFile->GetFormat() );

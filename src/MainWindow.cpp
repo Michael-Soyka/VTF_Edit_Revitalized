@@ -1189,9 +1189,9 @@ void CMainWindow::exportVTFToFile()
 
 	for ( int i = 0; i < fImageAmount; i++ )
 	{
-		vlUInt frames = type == 0 ? i + 1 : 1;
-		vlUInt faces = type == 1 ? i + 1 : 1;
-		vlUInt slices = type == 2 ? i + 1 : 1;
+		vlUInt frames = type == 0 ? i : 0;
+		vlUInt faces = type == 1 ? i : 0;
+		vlUInt slices = type == 2 ? i : 0;
 
 		auto size =
 			VTFLib::CVTFFile::ComputeImageSize( pVTF->GetWidth(), pVTF->GetHeight(), 1, IMAGE_FORMAT_RGBA8888 );

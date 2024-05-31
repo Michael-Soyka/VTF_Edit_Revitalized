@@ -84,7 +84,7 @@ set(CMAKE_AUTORCC ON)
 #find_package(OpenEXR CONFIG REQUIRED)
 
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets DBus Core Gui OpenGL OpenGLWidgets)
 
 set(SRC
         main.cpp
@@ -139,7 +139,7 @@ add_subdirectory(libs/vpklib)
 add_subdirectory(libs/SpeedyKV)
 
 add_executable(${PROJECT_NAME} ${SRC} src/res/res.qrc)
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Core Qt6::Gui Qt::OpenGLWidgets vtflib fmt::fmt keyvalues libvpkedit)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::DBus Qt6::Core Qt6::Gui Qt::OpenGLWidgets vtflib fmt::fmt keyvalues libvpkedit)
 
 target_include_directories(${PROJECT_NAME} PRIVATE libs/vpklib/include "${QT_INCLUDE} ${QT_INCLUDE}/QtWidgets" "${QT_INCLUDE}/QtGui" "${QT_INCLUDE}/QtCore" "${QT_INCLUDE}/QtOpenGLWidgets" ${QT_INCLUDE}/QtOpenGL ${OPENGL_LIBRARIES} OpenEXR::OpenEXR Imath::Imath Imath::Half)
 

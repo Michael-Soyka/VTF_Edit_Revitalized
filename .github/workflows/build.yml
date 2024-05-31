@@ -37,11 +37,11 @@ jobs:
 
       - name: Configure CMake
         if: ${{matrix.target == 'StrataSource'}}
-        run: cmake -G "Unix Makefiles" -B build -DCHAOS_INITIATIVE=ON -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/6.5.3/gcc_64'
+        run: cmake -G "Unix Makefiles" -B build -DCHAOS_INITIATIVE=ON -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/${{env.QT_VERSION}}/gcc_64'
 
       - name: Configure CMake
         if: ${{matrix.target == 'Source'}}
-        run: cmake -G "Unix Makefiles" -B build -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/6.5.3/gcc_64'
+        run: cmake -G "Unix Makefiles" -B build -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/${{env.QT_VERSION}}/gcc_64'
 
 
       - name: Build
@@ -91,13 +91,13 @@ jobs:
         if: ${{matrix.target == 'StrataSource'}}
         env:
           CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
-        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DCHAOS_INITIATIVE=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\6.5.3\msvc2019_64
+        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DCHAOS_INITIATIVE=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\${{env.QT_VERSION}}\msvc2019_64
 
       - name: Configure CMake
         if: ${{matrix.target == 'Source'}}
         env:
           CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
-        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\6.5.3\msvc2019_64
+        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\${{env.QT_VERSION}}\msvc2019_64
 
 
       - name: Build

@@ -1,7 +1,7 @@
 name: Build
 on:
   push:
-    branches: [ master, rework ]
+    branches: [ rework ]
   workflow_dispatch: # nothing here
 
 
@@ -29,8 +29,9 @@ jobs:
         with:
           aqtversion: '==3.1.*'
           version: ${{env.QT_VERSION}}
-          host: linux
-          target: desktop
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
           modules: ${{env.QT_MODULES}}
           dir: '${{github.workspace}}/libs/Qt'
           cache: true
@@ -47,16 +48,30 @@ jobs:
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
+      - name: Fixup Binaries
+        run: |
+          sudo apt install chrpath
+          
+          # runpath cleanup for the Qt binaries. These are (mostly) wrong, leading to crashes
+          for f in ${{env.BUILD_DIR}}/*.so*; do
+            echo "Fixing $f..."
+            chrpath -r '$ORIGIN' "$f"
+          done
+          for f in ${{env.BUILD_DIR}}/*/*.so*; do
+            echo "Fixing $f..."
+            chrpath -r '$ORIGIN/..' "$f"
+          done
+        
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: vtf-edit-revitalized-linux-${{matrix.build_type}}-${{matrix.target}}
           path: |
             ${{github.workspace}}/build/VTF_Edit_Revitalized
-            ${{github.workspace}}/build/tls/*.so*
             ${{github.workspace}}/build/imageformats/*.so*
             ${{github.workspace}}/build/platforms/*.so*
             ${{github.workspace}}/build/*.so*
+            ${{github.workspace}}/build/xcbglintegrations/*.so*
 
   build-msvc:
     strategy:

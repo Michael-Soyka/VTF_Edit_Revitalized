@@ -1,13 +1,13 @@
 name: Build
 on:
   push:
-    branches: [ master, rework ]
+    branches: [ rework ]
   workflow_dispatch: # nothing here
 
 
 env:
   BUILD_DIR: '${{github.workspace}}/build'
-  QT_VERSION: '6.5.3'
+  QT_VERSION: '6.6.3'
   QT_MODULES: 'qtimageformats'
 
 jobs:
@@ -29,34 +29,49 @@ jobs:
         with:
           aqtversion: '==3.1.*'
           version: ${{env.QT_VERSION}}
-          host: linux
-          target: desktop
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
           modules: ${{env.QT_MODULES}}
           dir: '${{github.workspace}}/libs/Qt'
           cache: true
 
       - name: Configure CMake
         if: ${{matrix.target == 'StrataSource'}}
-        run: cmake -G "Unix Makefiles" -B build -DCHAOS_INITIATIVE=ON -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/6.5.3/gcc_64'
+        run: cmake -G "Unix Makefiles" -B build -DCHAOS_INITIATIVE=ON -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/${{env.QT_VERSION}}/gcc_64'
 
       - name: Configure CMake
         if: ${{matrix.target == 'Source'}}
-        run: cmake -G "Unix Makefiles" -B build -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/6.5.3/gcc_64'
+        run: cmake -G "Unix Makefiles" -B build -DCOMPRESSVTF=ON -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DQT_BASEDIR='${{github.workspace}}/libs/Qt/Qt/${{env.QT_VERSION}}/gcc_64'
 
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
+      - name: Fixup Binaries
+        run: |
+          sudo apt install chrpath
+          
+          # runpath cleanup for the Qt binaries. These are (mostly) wrong, leading to crashes
+          for f in ${{env.BUILD_DIR}}/*.so*; do
+            echo "Fixing $f..."
+            chrpath -r '$ORIGIN' "$f"
+          done
+          for f in ${{env.BUILD_DIR}}/*/*.so*; do
+            echo "Fixing $f..."
+            chrpath -r '$ORIGIN/..' "$f"
+          done
+        
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: vtf-edit-revitalized-linux-${{matrix.build_type}}-${{matrix.target}}
           path: |
             ${{github.workspace}}/build/VTF_Edit_Revitalized
-            ${{github.workspace}}/build/tls/*.so*
             ${{github.workspace}}/build/imageformats/*.so*
             ${{github.workspace}}/build/platforms/*.so*
             ${{github.workspace}}/build/*.so*
+            ${{github.workspace}}/build/xcbglintegrations/*.so*
 
   build-msvc:
     strategy:
@@ -91,13 +106,13 @@ jobs:
         if: ${{matrix.target == 'StrataSource'}}
         env:
           CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
-        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DCHAOS_INITIATIVE=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\6.5.3\msvc2019_64
+        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DCHAOS_INITIATIVE=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\${{env.QT_VERSION}}\msvc2019_64
 
       - name: Configure CMake
         if: ${{matrix.target == 'Source'}}
         env:
           CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
-        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\6.5.3\msvc2019_64
+        run: cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCOMPRESSVTF=ON -DQT_BASEDIR=${{github.workspace}}\libs\Qt\Qt\${{env.QT_VERSION}}\msvc2019_64
 
 
       - name: Build
